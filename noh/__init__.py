@@ -1,6 +1,11 @@
-from noh import component
-from noh import wrapper
-from noh import circuit
+import component
+import wrapper
+import circuit
+
+#from noh import components
+#from noh import environments
+#from noh import training_functions
+
 
 Component = component.Component
 Binder = wrapper.Binder

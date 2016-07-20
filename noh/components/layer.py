@@ -1,6 +1,10 @@
+import sys,os
+sys.path.append(os.path.dirname(os.path.abspath(__file__)) + '/../../')
+
 from noh.component import Component
-from noh.planner import Plan, Planner
+#from noh.planner import Plan, Planner
 from noh.utils import *
+from noh.training_functions import gen_layer_default_trainer
 
 import numpy as np
 
@@ -14,20 +18,16 @@ class Layer(Component):
         self.b_visible = np.zeros(n_visible, dtype=np.float32)
         self.b_hidden = np.zeros(n_hidden, dtype=np.float32)
 
-    def __call__(self, x, backward=False):
-        if backward:
-            return sigmoid(np.dot(x, self.W.T) + self.b_visible)
-        return sigmoid(np.dot(x, self.W) + self.b_hidden)
+        self._train = gen_layer_default_trainer(self)
 
-    def train(self, data):
-        h = call(data)
-        y = call(data, backward=True)
-        error = mean_squared_error(y, data)
-        return tune(error)
+    def __call__(self, data, **kwargs):
+        return self.prop_up(data)
 
-    def tune(self, x, error, lr=0.1):
-        y = self(x)
-        self.W += lr * np.dot((p_sig(y) * error).T, x).T
-        self.b_hidden += lr * np.dot((p_sig(y) * error).T, np.ones((x.shape[0], 1)))[0]
+    def train(self, data, label, **kwargs):
+        return self._train(data, label)
 
-        return np.dot(error, self.W.T)
+    def prop_up(self, v):
+        return sigmoid(np.dot(v, self.W) + self.b_hidden)
+
+    def prop_down(self, h):
+        return sigmoid(np.dot(h, self.W.T) + self.b_visible)

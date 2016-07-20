@@ -17,7 +17,7 @@ class Component(object):
     __metaclass__ = ABCMeta
 
     def __init__(self):
-        pass
+        self.RL_trainable = False
 
     @abstractmethod
     def __call__(self, data, **kwargs):
