@@ -31,3 +31,6 @@ class Layer(Component):
 
     def prop_down(self, h):
         return sigmoid(np.dot(h, self.W.T) + self.b_visible)
+
+    def rec(self, v):
+        return self.prop_down(self.prop_up(v))

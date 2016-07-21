@@ -4,18 +4,17 @@ import numpy as np
 
 class SimpleTest(SupervisedEnvironment):
 
-    def __init__(self, model, dataset=None):
-        super(SimpleTest, self).__init__(model, dataset)
+    def __init__(self, model):
+        super(SimpleTest, self).__init__(model)
 
-        n = 10
+        n_visible = 10
+        n_dataset = 10
 
-        print dataset
-
-        if dataset is None:
-            x = np.random.randint(0, 2, size=(n, n))
-            y = np.identity(n)
+        x = np.random.randint(0, 2, size=(n_visible, n_dataset))
+        y = np.identity(n_dataset)
             
         self.dataset = (x, y)
-        
-        for d in self.dataset:
-            print d
+
+    def train(self, epochs=None):
+        super(SimpleTest, self).train(epochs=1000)
+    
