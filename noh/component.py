@@ -24,5 +24,5 @@ class Component(object):
         raise NotImplementedError("`__call__` must be explicitly overridden")
 
     @abstractmethod
-    def train(self, data, **kwargs):
+    def train(self, data, label, epochs, **kwargs):
         raise NotImplementedError("`train` must be explicitly overridden")

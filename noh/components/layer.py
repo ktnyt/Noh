@@ -14,7 +14,8 @@ class Layer(Component):
 
         self.n_visible = n_visible
         self.n_hidden = n_hidden
-        self.W = np.array(np.random.uniform(low=-a, high=a, size=(n_visible, n_hidden)), dtype=np.float32)
+        self.W = np.array(np.random.uniform(low=-a, high=a, size=(n_visible, n_hidden)), 
+                          dtype=np.float32)
         self.b_visible = np.zeros(n_visible, dtype=np.float32)
         self.b_hidden = np.zeros(n_hidden, dtype=np.float32)
 
@@ -23,8 +24,10 @@ class Layer(Component):
     def __call__(self, data, **kwargs):
         return self.prop_up(data)
 
-    def train(self, data, label, **kwargs):
-        return self._train(data, label)
+    def train(self, data, label, epochs, **kwargs):
+        for _ in xrange(epochs):
+            error = self._train(data, label)
+        return error
 
     def prop_up(self, v):
         return sigmoid(np.dot(v, self.W) + self.b_hidden)
@@ -34,3 +37,7 @@ class Layer(Component):
 
     def rec(self, v):
         return self.prop_down(self.prop_up(v))
+
+    def get_rec_crossentropy(self, v):
+        rec_v = self.rec(v)
+        return 0.5 * np.sum((v - rec_v)**2)

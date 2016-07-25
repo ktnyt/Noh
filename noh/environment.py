@@ -52,9 +52,8 @@ class SupervisedEnvironment(Environment):
         self.dataset = None
         self.test_dataset = None
 
-    def train(self, epochs=100):
-        for _ in xrange(epochs):
-            self.model.train(self.dataset[0], self.dataset[1])
+    def train(self, epochs):
+        self.model.train(data=self.dataset[0], label=dataself.dataset[1], epochs=epochs)
 
     def get_dataset(self):
         return self.dataset
@@ -69,9 +68,8 @@ class UnsupervisedEnvironment(Environment):
         self.dataset = None
         self.test_dataset = None
 
-    def train(self, epochs=100):
-        for _ in xrange(epochs):
-            self.model.train(self.dataset)
+    def train(self, epochs):
+        self.model.train(data=self.dataset, label=None, epochs=epochs)
 
     def get_dataset(self):
         return self.dataset

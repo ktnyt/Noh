@@ -1,84 +1,53 @@
-import sys,os
-sys.path.append(os.path.dirname(os.path.abspath(__file__)) + '/../../')
-
 import numpy as np
 
 from noh.components import Layer
-from noh.utils import *
+from noh.utils import sigmoid, p_sig, get_lr_func
 
 rng = np.random.RandomState(123)
 
-def activate(x):
-    sample = rng.binomial(size=x.shape, n=1, p=x)
-    return sample
-
 class RBM(Layer):
-    def __init__(self, n_visible, n_hidden):
+    def __init__(self, n_visible, n_hidden, lr_type="hinton_r_div", r_div=None, lr=None):
         super(RBM, self).__init__(n_visible, n_hidden)
+        print self.W
+        self.lr_type=lr_type
+        self.get_lr = get_lr_func(lr_type=lr_type, r_div=r_div, lr=lr)
 
-    def __call__(self, data, decode=False):
-        return self.decode(data) if decode else self.encode(data)
+    def train(self, data, label=None, lr=0.01, k=1, epochs=1000):
+        self.unsupervised_train(data,  k=k, epochs=epochs)
 
-    def train(self, data, lr=0.01, k=1, epochs=1000):
-        for epoch in xrange(epochs):
-            error = self.cd_k(data, lr=lr, k=k)
-        return error
+    def supervised_train(self, data, label=None, lr=0.01, k=1, epochs=1000):
+        super(RBM, self).train(data, label=None, lr=lr, k=k, epochs=epochs)
 
-    def cd_k(self, v, lr=0.01, k=1):
-        ph_mean, ph_sample = self.sample_h_given_v(v)
+    def unsupervised_train(self, data, k=1, epochs=1000):
+        for i in xrange(epochs):
+            self.CD(data=data)
+            print "epoch: ", i, self.get_rec_crossentropy(data)
 
-        for step in xrange(k):
-            if step == 0:
-                nv_mean, nv_sample, nh_mean, nh_sample = self.gibbs_hvh(ph_sample)
-            else:
-                nv_mean, nv_sample, nh_mean, nh_sample = self.gibbs_hvh(nh_sample)
+    def CD(self, data):
 
-        self.W += lr * (np.dot(v.T, ph_sample) - np.dot(nv_sample.T, nh_mean))
-        self.b_visible += lr * np.mean(v - nv_sample, axis=0)
-        self.b_hidden += lr * np.mean(ph_sample - nh_mean, axis=0)
+        h_mean = sigmoid(np.dot(data, self.W) + self.b_hidden)
+        h_sample = rng.binomial(size=h_mean.shape, n=1, p=h_mean)
 
-        return self.cross_entropy(v)
+        nv_mean = sigmoid(np.dot(h_sample, self.W.T) + self.b_visible)
+        nv_sample = rng.binomial(size=nv_mean.shape, n=1, p=nv_mean)
 
-    def sample_h_given_v(self, v0_sample):
-        h1_mean = self.encode(v0_sample)
-        h1_sample = activate(h1_mean)
-        return h1_mean, h1_sample
+        nh_mean = sigmoid(np.dot(nv_sample, self.W) + self.b_hidden)
+        nh_sample = rng.binomial(size=nh_mean.shape, n=1, p=nh_mean)
 
-    def sample_v_given_h(self, h0_sample):
-        v1_mean = self.decode(h0_sample)
-        v1_sample = activate(v1_mean)
-        return v1_mean, v1_sample
+        dW = (np.dot(data.T, h_sample) - np.dot(nv_sample.T, nh_mean))
+        lr = self.get_lr(weight=self.W, d_weight=dW)
+        print "lr = ", lr
 
-    def gibbs_hvh(self, h0_sample):
-        v1_mean, v1_sample = self.sample_v_given_h(h0_sample)
-        h1_mean, h1_sample = self.sample_h_given_v(v1_sample)
-        return v1_mean, v1_sample, h1_mean, h1_sample
+        self.W += lr * dW
+        self.b_visible += lr * np.mean(data - nv_sample, axis=0)
+        self.b_hidden += lr * np.mean(h_sample - nh_mean, axis=0)
 
-    def cross_entropy(self, v0):
-        h0 = self.encode(v0)
-        v1 = self.decode(h0)
-        return -np.mean(np.sum(v0 * np.log(v1) + (1 - v0) * np.log(1 - v1), axis=1))
+    def get_energy(self, data):
+        """ Return Scala Value """
+        hid = self.prop_up(data)
+        eng = - np.dot(self.b_visible, data.T).sum(axis=0) - \
+            np.dot(np.dot(data, self.W).T, hid).sum(axis=0) - \
+            np.dot(hid, self.b_hidden).sum(axis=0)
 
-    def encode(self, v):
-        return sigmoid(np.dot(v, self.W) + self.b_hidden)
+        return eng.mean()
 
-    def decode(self, h):
-        return sigmoid(np.dot(h, self.W.T) + self.b_visible)
-
-if __name__ == '__main__':
-    rbm = RBM(6, 3)
-
-    x = np.array([[1 ,1 ,1 ,0 ,0, 0],
-                  [1 ,0 ,1 ,0 ,0, 0],
-                  [1 ,1 ,1 ,0 ,0, 0],
-                  [0 ,0 ,1 ,1 ,1, 0],
-                  [0 ,0 ,1 ,1 ,0, 0],
-                  [0 ,0 ,1 ,1 ,1, 0]])
-
-    print rbm.train(x, lr=0.1, epochs=1000)
-    v = np.array([[0, 0, 0, 1, 1, 0],
-                  [1, 1, 0, 0, 0, 0]])
-    h = rbm.encode(v)
-    y = rbm.decode(h)
-    print v
-    print y
