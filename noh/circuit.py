@@ -1,27 +1,17 @@
 from noh.component import Component
-from noh.wrapper import Wrapper
 
 class Circuit(Component):
-    def __init__(self, *components):
+    def __init__(self, components):
         self.components = components
 
-    def __call__(self, data, **kwargs):
+    def __call__(self, data):
         for component in self.components:
-            if len(kwargs.keys()) and isinstance(component, Wrapper):
-                data = component(data, **kwargs)
-            else:
-                data = component(data)
+            data = component(data)
         return data
 
-    def train(self, data, **kwargs):
+    def train(self, data):
         errors = []
         for component in self.components:
-            if len(kwargs.keys()) and isinstance(component, Wrapper):
-                errors.append(component.train(data, **kwargs))
-            else:
-                errors.append(component.train(data))
-            if len(kwargs.keys()) and isinstance(component, Wrapper):
-                data = component(data, **kwargs)
-            else:
-                data = component(data)
+            errors.append(component.train(data))
+            data = component.train(data)
         return errors
