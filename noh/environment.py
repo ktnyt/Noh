@@ -53,7 +53,7 @@ class SupervisedEnvironment(Environment):
         self.test_dataset = None
 
     def train(self, epochs):
-        self.model.train(data=self.dataset[0], label=dataself.dataset[1], epochs=epochs)
+        self.model.train(data=self.dataset[0], label=self.dataset[1], epochs=epochs)
 
     def get_dataset(self):
         return self.dataset
