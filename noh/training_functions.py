@@ -7,7 +7,8 @@ def gen_empty_trainer():
 
 
 def gen_sgd_trainer(model):
-    from noh.utils import p_sig, get_lr_func
+    from noh.utils import get_lr_func
+    from noh.activate_functions import p_sig
     lr_func = get_lr_func(lr_type="const", lr=0.1)
     def sgd_trainer(x, t):
 
@@ -20,7 +21,7 @@ def gen_sgd_trainer(model):
             
         input_error = np.dot(error, model.W.T)
 
-        print np.sum(error**2)*0.5
+        return np.sum(error**2)*0.5
 
     return sgd_trainer
 

@@ -1,12 +1,11 @@
 from noh.component import Component
-#from noh.planner import Plan, Planner
-from noh.utils import sigmoid
 from noh.training_functions import gen_sgd_trainer
+from noh.activate_functions import sigmoid
 
 import numpy as np
 
 class Layer(Component):
-    def __init__(self, n_visible, n_hidden, train_func_generator=None):
+    def __init__(self, n_visible, n_hidden, train_func_generator=None, activate=sigmoid):
         a = 1. / n_visible
 
         self.n_visible = n_visible
@@ -20,6 +19,9 @@ class Layer(Component):
             self._train = gen_sgd_trainer(self)
         else:
             self._train = train_func_generator(self)
+
+        self.activate = activate
+        self.rng = np.random.RandomState(123)
             
     def __call__(self, data, **kwargs):
         return self.prop_up(data)
@@ -30,18 +32,18 @@ class Layer(Component):
         return error
 
     def prop_up(self, v):
-        #return sigmoid(np.dot(v, self.W) + self.b_hidden)
-        #return np.tanh(np.dot(v, self.W) + self.b_hidden)
-        return np.dot(v, self.W) + self.b_hidden
+        return self.activate(np.dot(v, self.W) + self.b_hidden)
 
     def prop_down(self, h):
-        #return sigmoid(np.dot(h, self.W.T) + self.b_visible)
-        #return np.tanh(np.dot(h, self.W.T) + self.b_visible)
-        return np.dot(h, self.W.T) + self.b_visible
+        return self.activate(np.dot(h, self.W.T) + self.b_visible)
 
     def rec(self, v):
         return self.prop_down(self.prop_up(v))
 
-    def get_rec_crossentropy(self, v):
+    def get_rec_square_error(self, v):
         rec_v = self.rec(v)
-        return 0.5 * np.sum((v - rec_v)**2)
+        return 0.5 * np.sum((v - rec_v)**2) / v.shape[0]
+
+    def get_rec_cross_entropy(self, v):
+        rec_v = self.rec(v)
+        return - np.mean(np.sum(v * np.log(rec_v) + (1 - v) * np.log(1 - rec_v), axis=1))

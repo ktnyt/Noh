@@ -1,4 +1,5 @@
 import sys,os
+import numpy as np
 sys.path.append(os.path.dirname(os.path.abspath(__file__)) + '/../')
 
 from noh.components import Layer
@@ -8,6 +9,6 @@ if __name__ == "__main__":
     layer = Layer(10, 10)
     env = SimpleTest(layer)
     env.train()
-    print layer(env.get_dataset()[0])
+    print np.floor(layer(env.get_dataset()[0]) + 0.5)
 
     

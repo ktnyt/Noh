@@ -1,6 +1,6 @@
 import numpy as np
 from noh.components import Layer
-from noh.utils import sigmoid
+from noh.activate_functions import sigmoid
 
 class Reservoir(Layer):
     

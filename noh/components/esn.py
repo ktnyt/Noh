@@ -3,12 +3,11 @@ import numpy as np
 from noh import Circuit, Planner
 from noh.components import Layer, Reservoir
 from noh.training_functions import gen_linear_regression_trainer
-# from noh.utils import sigmoid, p_sig, get_lr_func
+from noh.activate_functions import liner
 
 class ESN_Planner(Planner):
     def __init__(self, components):
         super(ESN_Planner, self).__init__(components)
-        print self.components
 
     def __call__(self, data):
         data = self.components[0].prop_up_sequence(data)
@@ -25,7 +24,8 @@ class ESN(Circuit):
         super(ESN, self).__init__(components=None, planner=None)
 
         resv = Reservoir(n_visible, n_hidden, bind_prob_W=0.03, bind_prob_W_rec=0.1)
-        liner_regression = Layer(n_hidden, n_output, train_func_generator=gen_linear_regression_trainer)
+        liner_regression = Layer(n_hidden, n_output, train_func_generator=gen_linear_regression_trainer, 
+                                 activate=liner)
         
         self.components = (resv, liner_regression)
         self.planner = ESN_Planner(self.components)
