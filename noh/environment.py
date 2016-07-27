@@ -47,32 +47,38 @@ class ReinforcementEnvironment(Environment):
 
 class SupervisedEnvironment(Environment):
 
+    dataset = None
+    test_dataset = None
+
     def __init__(self, model):
         super(SupervisedEnvironment, self).__init__(model)
-        self.dataset = None
-        self.test_dataset = None
 
     def train(self, epochs):
         self.model.train(data=self.dataset[0], label=self.dataset[1], epochs=epochs)
 
-    def get_dataset(self):
-        return self.dataset
+    @classmethod
+    def get_dataset(cls):
+        return cls.dataset
 
-    def get_test_dataset(self):
-        return self.test_dataset
+    @classmethod
+    def get_test_dataset(cls):
+        return cls.test_dataset
 
 class UnsupervisedEnvironment(Environment):
 
+    dataset = None
+    test_dataset = None
+
     def __init__(self, model):
         super(UnsupervisedEnvironment, self).__init__(model)
-        self.dataset = None
-        self.test_dataset = None
 
     def train(self, epochs):
         self.model.train(data=self.dataset, label=None, epochs=epochs)
 
-    def get_dataset(self):
-        return self.dataset
+    @classmethod
+    def get_dataset(cls):
+        return cls.dataset
 
-    def get_test_dataset(self):
-        return self.test_dataset
+    @classmethod
+    def get_test_dataset(cls):
+        return cls.test_dataset

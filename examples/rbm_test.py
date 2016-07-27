@@ -14,15 +14,17 @@ if __name__ == "__main__":
     env.train(epochs=1000)
 
     print "--- show training data ---"
-    print env.get_dataset()
+    dataset = SimpleUnsupervisedTest.get_dataset()
+    print dataset
 
     print "--- show training data reconstruction ---"
-    print rbm.rec(env.get_dataset())
+    print rbm.rec(dataset)
 
     print "--- show test data ---"
-    print env.get_test_dataset()
+    test_dataset = SimpleUnsupervisedTest.get_test_dataset()
+    print test_dataset
 
     print "--- show test data reconstruction ---"
-    print rbm.rec(env.get_test_dataset())
+    print rbm.rec(test_dataset)
 
     

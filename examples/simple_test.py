@@ -9,6 +9,6 @@ if __name__ == "__main__":
     layer = Layer(10, 10)
     env = SimpleTest(layer)
     env.train()
-    print np.floor(layer(env.get_dataset()[0]) + 0.5)
+    print np.floor(layer(SimpleTest.get_dataset()[0]) + 0.5)
 
     
