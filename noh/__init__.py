@@ -1,9 +1,8 @@
-from noh import component
-from noh import wrapper
-from noh import circuit
+import component
+import circuit
+import planner
 
 Component = component.Component
-Binder = wrapper.Binder
-Mapper = wrapper.Mapper
-Wrapper = wrapper.Wrapper
 Circuit = circuit.Circuit
+Planner = planner.Planner
+
