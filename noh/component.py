@@ -18,7 +18,8 @@ class Component(object):
 
     def __init__(self):
         self.RL_trainable = False
-
+        self.parms = {}
+        
     @abstractmethod
     def __call__(self, data, **kwargs):
         raise NotImplementedError("`__call__` must be explicitly overridden")
@@ -26,3 +27,22 @@ class Component(object):
     @abstractmethod
     def train(self, data, label, epochs, **kwargs):
         raise NotImplementedError("`train` must be explicitly overridden")
+
+    def save_parms(self):
+
+        import sys, os
+        import numpy as np
+
+        class_name = self.__class__.__name__
+        exec_name = os.path.splitext(sys.argv[0])[0]
+
+        cwd = os.getcwd()
+        dir_name = cwd + "/" + exec_name + "_save/"
+        print dir_name
+        if not os.path.exists(dir_name):
+            os.mkdir(dir_name)
+
+        for parm in self.parms:
+            print parm
+            file_name =class_name+"_"+parm+".npy"
+            np.save(dir_name + file_name, self.parms[parm]())
