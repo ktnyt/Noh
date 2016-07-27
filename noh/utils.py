@@ -21,13 +21,3 @@ def get_lr_func(lr_type="const", lr=None, r_div=None):
         return opt_hinton
     else:
         raise ValueError("{0} is not defined.".format(lr_type))
-
-
-def softmax(x):
-    e = np.exp(x - np.max(x))
-    return e / e.sum()
-
-def mean_squared_error(y, t):
-    d = y - t
-    d = d.ravel()
-    return np.array(d.dot(d) / d.size, dtype=d.dtype)

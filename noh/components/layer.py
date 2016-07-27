@@ -22,6 +22,10 @@ class Layer(Component):
 
         self.activate = activate
         self.rng = np.random.RandomState(123)
+
+        self.parms = {"W": (lambda: self.W), 
+                      "b_visible": (lambda: self.b_visible),
+                      "b_hidden": (lambda: self.b_hidden)}
             
     def __call__(self, data, **kwargs):
         return self.prop_up(data)
@@ -47,3 +51,4 @@ class Layer(Component):
     def get_rec_cross_entropy(self, v):
         rec_v = self.rec(v)
         return - np.mean(np.sum(v * np.log(rec_v) + (1 - v) * np.log(1 - rec_v), axis=1))
+

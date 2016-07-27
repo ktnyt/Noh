@@ -4,7 +4,7 @@ from noh.activate_functions import sigmoid
 
 class Reservoir(Layer):
     
-    def __init__(self, n_visible, n_hidden, bind_prob_W=0.03, bind_prob_W_rec=0.1):
+    def __init__(self, n_visible, n_hidden, activate=sigmoid, bind_prob_W=0.03, bind_prob_W_rec=0.1):
         super(Reservoir, self).__init__(n_visible, n_hidden)
         
         self.W = np.zeros((n_visible, n_hidden))
@@ -22,6 +22,8 @@ class Reservoir(Layer):
                 if np.random.rand() < bind_prob_W_rec:
                     self.W_rec[x1][x2] = np.random.rand() - 0.5
 
+        self.activate = activate
+
     def __call__(self, data):
         self.prop_up(data)
 
@@ -31,9 +33,8 @@ class Reservoir(Layer):
     def prop_up(self, data):
         data = np.atleast_1d(data)
 
-        "Note: In many case, activate function of the reservoir is recomennded using tanh."
-        self.prev_hid = sigmoid(np.dot(data, self.W) + np.dot(self.prev_hid, self.W_rec))
-        #self.prev_hid = np.tanh(np.dot(data, self.W) + np.dot(self.prev_hid, self.W_rec))
+        "Note: In many case, activate function of the reservoir is recomennded to use tanh."
+        self.prev_hid = self.activate(np.dot(data, self.W) + np.dot(self.prev_hid, self.W_rec))
 
         return self.prev_hid
 

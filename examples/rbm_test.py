@@ -27,4 +27,4 @@ if __name__ == "__main__":
     print "--- show test data reconstruction ---"
     print rbm.rec(test_dataset)
 
-    
+    rbm.save_parms()
