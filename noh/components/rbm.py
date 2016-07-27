@@ -13,6 +13,32 @@ class RBM(Layer):
     def train(self, data, label=None, lr=0.01, k=1, epochs=1000):
         self.unsupervised_train(data,  k=k, epochs=epochs)
 
+    @classmethod
+    def DALP(cls, data, epochs, k=1, H0=1, H1=10, lr_type="hinton_r_div", r_div=None, lr=None):
+
+        n_visible = data.shape[1]
+
+        print "******* RBM0 *******"
+
+        rbm0 = cls(n_visible=n_visible, n_hidden=H0, lr_type=lr_type, r_div=r_div, lr=lr)
+        rbm0.unsupervised_train(data, k=k, epochs=epochs)
+        E0 = rbm0.get_rec_cross_entropy(data)
+
+        print "******* RBM1 *******"
+        
+        rbm1 = cls(n_visible=n_visible, n_hidden=H1, lr_type=lr_type, r_div=r_div, lr=lr)
+        rbm1.unsupervised_train(data, k=k, epochs=epochs)
+        E1 = rbm1.get_rec_cross_entropy(data)
+
+        print "******* calc *******"
+
+        slope = (E1 - E0) / (H1 - H0)
+        H_est = int(- E0 / slope)
+
+        print "H_est = ", H_est
+
+        return H_est
+
     def supervised_train(self, data, label=None, lr=0.01, k=1, epochs=1000):
         super(RBM, self).train(data, label=None, lr=lr, k=k, epochs=epochs)
 
