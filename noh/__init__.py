@@ -1,8 +1,11 @@
-import component
-import circuit
-import router
+from noh import circuit
+from noh import component
+from noh import planner
+from noh import router
 
-Component = component.Component
 Circuit = circuit.Circuit
+Component = component.Component
+Plan = planner.Plan
+Planner = planner.Planner
 Route = router.Route
 Router = router.Router

@@ -1,63 +1,31 @@
-from noh.component import Component
+from abc import ABCMeta, abstractmethod
+from noh.utils import DotAccessible
 
-class Planner(Component):
-    def __init__(self, components):
-        self.components = components
-
-    def __call__(self, data):
-        pass
-
-    def train(self, data):
-        pass
-
-
-"""
 class Plan(object):
-    def __init__(self, components):
-        self.components = components
 
-    def __call__(self, data, *args, **kwargs):
+    __metaclass__ = ABCMeta
+
+    def __init__(self, components):
+        self.components = DotAccessible(components)
+
+    @abstractmethod
+    def __call__(self, data, label, epoch, *args, **kwargs):
         raise NotImplementedError("`__call__` must be explicitly overridden")
 
-class Planner(Plan):
-    def __init__(self, components, **plans):
+class Planner(object):
+    def __init__(self, default, **Plans):
+        self.Plans = Plans
+        self.Plans['default'] = default
         self.plans = {}
-        for plan in plans:
-            self.plans[plan] = plans[plan](components)
 
-    def __call__(self, plan, data, *args, **kwargs):
-        return self.plans[plan](data, *args, **kwargs)
+    def setup(self, components):
+        for name in self.Plans:
+            Plan = self.Plans[name]
+            self.plans[name] = Plan(components)
+        self.plan = self.plans['default']
 
-class DefaultCall(Plan):
-    def __call__(self, data, *args, **kwargs):
-        for component in self.components:
-            data = component(data)
-        return data
+    def set(self, name):
+        self.plan = self.plans[name]
 
-class ReverseCall(Plan):
-    def __call__(self, data, *args, **kwargs):
-        for component in reversed(self.components):
-            data = component(data)
-        return data
-
-def Reversible(components):
-    return Planner(components, forward=DefaultCall, backward=ReverseCall)
-
-class DefaultTrain(Plan):
-    def __call__(self, data, *args, **kwargs):
-        errors = []
-        for component in self.components:
-            errors.append(component.train(data))
-            data = component.train(data)
-        return errors
-
-class Backprop(Plan):
-    def __call__(self, data, *args, **kwargs):
-        error = func(data, label)
-        for component in reversed(self.components):
-            component.train(data, backprop=True)
-        return error
-
-def Pretrainable(components):
-    return Planner(components, pretrain=DefaultTrain, finetune=Backprop)
-"""
+    def __call__(self, data, label, epoch):
+        return self.plan(data, label, epoch)
