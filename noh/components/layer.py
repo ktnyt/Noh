@@ -5,28 +5,25 @@ from noh.activate_functions import sigmoid
 import numpy as np
 
 class Layer(Component):
-    def __init__(self, n_visible, n_hidden, train_func_generator=None, activate=sigmoid):
+    def __init__(self, n_visible, n_hidden, train_func_generator=gen_sgd_trainer, activate=sigmoid):
         a = 1. / n_visible
 
         self.n_visible = n_visible
         self.n_hidden = n_hidden
-        self.W = np.array(np.random.uniform(low=-a, high=a, size=(n_visible, n_hidden)), 
+        self.W = np.array(np.random.uniform(low=-a, high=a, size=(n_visible, n_hidden)),
                           dtype=np.float32)
         self.b_visible = np.zeros(n_visible, dtype=np.float32)
         self.b_hidden = np.zeros(n_hidden, dtype=np.float32)
 
-        if train_func_generator is None:
-            self._train = gen_sgd_trainer(self)
-        else:
-            self._train = train_func_generator(self)
+        self._train = train_func_generator(self)
 
         self.activate = activate
         self.rng = np.random.RandomState(123)
 
-        self.parms = {"W": (lambda: self.W), 
+        self.params = {"W": (lambda: self.W),
                       "b_visible": (lambda: self.b_visible),
                       "b_hidden": (lambda: self.b_hidden)}
-            
+
     def __call__(self, data, **kwargs):
         return self.prop_up(data)
 
@@ -51,4 +48,3 @@ class Layer(Component):
     def get_rec_cross_entropy(self, v):
         rec_v = self.rec(v)
         return - np.mean(np.sum(v * np.log(rec_v) + (1 - v) * np.log(1 - rec_v), axis=1))
-

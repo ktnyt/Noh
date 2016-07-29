@@ -1,3 +1,4 @@
+
 import numpy as np
 
 def sigmoid(x):
@@ -7,6 +8,5 @@ def sigmoid(x):
 def p_sig(x):
     return x * (1. - x)
 
-
-def liner(x):
+def linear(x):
     return x

@@ -1,5 +1,30 @@
 import numpy as np
 
+class DotAccessible(object):
+    def __init__(self, obj):
+        self.obj=obj
+
+    def __getitem__(self, i):
+        return self.wrap(self.obj[i])
+
+    def __getslice__(self, i, j):
+        return map(self.wrap, self.obj.__getslice__(i,j))
+
+    def __getattr__(self, key):
+        if isinstance(self.obj, dict):
+            try:
+                v=self.obj[key]
+            except KeyError:
+                v=self.obj.__getattribute__(key)
+        else:
+            v=self.obj.__getattribute__(key)
+
+        return self.wrap(v)
+
+    def wrap(self, v):
+        if isinstance(v, (dict,list,tuple)): # xx add set
+            return self.__class__(v)
+        return v
 
 def get_lr_func(lr_type="const", lr=None, r_div=None):
 

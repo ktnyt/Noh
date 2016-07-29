@@ -3,7 +3,7 @@ from noh.component import Component
 class Planner(Component):
     def __init__(self, components):
         self.components = components
-        
+
     def __call__(self, data):
         pass
 
