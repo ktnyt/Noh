@@ -1,6 +1,5 @@
 from abc import ABCMeta, abstractmethod
 
-
 class Environment(object):
 
     __metaclass__ = ABCMeta
@@ -11,7 +10,6 @@ class Environment(object):
     @abstractmethod
     def train(self):
         raise NotImplementedError("`train` must be explicitly overridden")
-
 
 class ReinforcementEnvironment(Environment):
 
@@ -42,8 +40,7 @@ class ReinforcementEnvironment(Environment):
     @abstractmethod
     def get_reward(self):
         """ Return some scholar value """
-        raise NotImplementedError("`get_stat` must be explicitly overridden")
-
+        raise NotImplementedError("`get_reward` must be explicitly overridden")
 
 class SupervisedEnvironment(Environment):
 
