@@ -3,6 +3,7 @@ from noh.environment import SupervisedEnvironment
 import numpy as np
 import time
 import pylab
+
 from sklearn.datasets import fetch_mldata
 from sklearn.cross_validation import train_test_split
 from sklearn.preprocessing import LabelBinarizer
@@ -14,24 +15,30 @@ class MNISTEnv(SupervisedEnvironment):
     n_visible = 28 * 28
     n_dataset = 60000
     n_test_dataset = 10000
-    
-    mnist = fetch_mldata('MNIST original', data_home="./mnist")
-    X = mnist.data
-    y = mnist.target
-    
-    X = X.astype(np.float64)
-    X /= X.max()
-    
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.142857)
-    
-    labels_train = LabelBinarizer().fit_transform(y_train)
-    labels_test = LabelBinarizer().fit_transform(y_test)
-    
-    dataset = (X_train, labels_train)
-    test_dataset = (X_test, labels_test)
+
+    dataset = None
+    test_dataset = None
 
     def __init__(self, model):
         super(MNISTEnv, self).__init__(model)
+
+        data_home = "./mnist"
+        mnist = fetch_mldata('MNIST original', data_home=data_home)
+        X = mnist.data
+        y = mnist.target
+
+        X = X.astype(np.float64)
+        X /= X.max()
+
+        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.142857)
+
+        labels_train = LabelBinarizer().fit_transform(y_train)
+        labels_test = LabelBinarizer().fit_transform(y_test)
+
+        MNISTEnv.dataset = (X_train, labels_train)
+        MNISTEnv.test_dataset = (X_test, labels_test)
+
+
 
     def train(self, epochs=None):
         super(MNISTEnv, self).train(epochs)

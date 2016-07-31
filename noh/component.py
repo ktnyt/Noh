@@ -16,8 +16,8 @@ class Component(object):
 
     __metaclass__ = ABCMeta
 
-    def __init__(self):
-        self.RL_trainable = False
+    def __init__(self, RL_trainable=False):
+        self.RL_trainable = RL_trainable
         self.params = {}
 
     @abstractmethod

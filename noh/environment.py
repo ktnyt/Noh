@@ -1,5 +1,6 @@
 from abc import ABCMeta, abstractmethod
 
+
 class Environment(object):
 
     __metaclass__ = ABCMeta
@@ -11,6 +12,7 @@ class Environment(object):
     def train(self):
         raise NotImplementedError("`train` must be explicitly overridden")
 
+
 class ReinforcementEnvironment(Environment):
 
     __metaclass__ = ABCMeta
@@ -20,7 +22,11 @@ class ReinforcementEnvironment(Environment):
             raise ValueError("model should be RL trainable")
         super(ReinforcementEnvironment, self).__init__(model)
 
-    def train(self):
+    def train(self, epochs):
+        for epoch in xrange(epochs):
+            self.main_loop()
+
+    def main_loop(self):
         stat = self.get_stat()
         act = self.model(stat)
         self.set_act(act)
@@ -42,6 +48,7 @@ class ReinforcementEnvironment(Environment):
         """ Return some scholar value """
         raise NotImplementedError("`get_reward` must be explicitly overridden")
 
+
 class SupervisedEnvironment(Environment):
 
     dataset = None
@@ -60,6 +67,7 @@ class SupervisedEnvironment(Environment):
     @classmethod
     def get_test_dataset(cls):
         return cls.test_dataset
+
 
 class UnsupervisedEnvironment(Environment):
 
