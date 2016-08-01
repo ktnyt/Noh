@@ -17,17 +17,21 @@ class ESNTrain(TrainRule):
         return components.lin_reg.train(data, label, epochs=1)
 
 class ESNPlanner(Planner):
-    def __init__(self, components):
+    def __init__(self, components, labels):
         super(ESNPlanner, self).__init__(
-            components,
             prop=ESNProp,
-            train=ESNTrain
+            train=ESNTrain,
+            components=components,
+            labels=labels
         )
 
 class ESN(Circuit):
     def __init__(self, n_visible, n_hidden, n_output, planner=ESNPlanner):
         super(ESN, self).__init__(
-            reservoir=Reservoir(n_visible, n_hidden, bind_prob_W=0.03, bind_prob_W_rec=0.1),
-            lin_reg=Layer(n_hidden, n_output, train_func_generator=gen_linear_regression_trainer, activate=linear),
-            planner=planner
+            planner=planner,
+            components=[
+                Reservoir(n_visible, n_hidden, bind_prob_W=0.03, bind_prob_W_rec=0.1),
+                Layer(n_hidden, n_output, train_func_generator=gen_linear_regression_trainer, activate=linear)
+            ],
+            labels=['reservoir', 'lin_reg']
         )

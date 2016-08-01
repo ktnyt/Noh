@@ -1,30 +1,55 @@
 import numpy as np
 
-class DotAccessible(object):
-    def __init__(self, obj):
-        self.obj=obj
+class Collection(object):
+    keys = []
+    values = []
 
-    def __getitem__(self, i):
-        return self.wrap(self.obj[i])
+    def __init__(self, keys, values):
+        if keys is None:
+            keys = ['c{}'.format(i) for i in range(len(values))]
+
+        assert(len(keys) == len(set(keys)))
+        assert(len(keys) == len(values))
+
+        self.keys = keys
+        self.values = values
+
+    def __getitem__(self, key):
+        if isinstance(key, int):
+            index = key
+        else:
+            index = self.keys.index(key)
+        return self.values[index]
+
+    def __setitem__(self, key, value):
+        if isinstance(key, int):
+            index = key
+        else:
+            index = self.keys.index(key)
+        self.values[index] = value
+
+    def __delitem__(self, key):
+        if isinstance(key, int):
+            index = key
+        else:
+            index = self.keys.index(key)
+        del self.keys[key]
+        del self.values[key]
+
+    def __iter__(self):
+        return iter(self.keys)
 
     def __getslice__(self, i, j):
-        return map(self.wrap, self.obj.__getslice__(i,j))
+        raise NotImplementedError("To be implemented")
+
+    def __setslice__(self, i, j, values):
+        raise NotImplementedError("To be implemented")
+
+    def __delslice__(self, i, j):
+        raise NotImplementedError("To be implemented")
 
     def __getattr__(self, key):
-        if isinstance(self.obj, dict):
-            try:
-                v=self.obj[key]
-            except KeyError:
-                v=self.obj.__getattribute__(key)
-        else:
-            v=self.obj.__getattribute__(key)
-
-        return self.wrap(v)
-
-    def wrap(self, v):
-        if isinstance(v, (dict,list,tuple)): # xx add set
-            return self.__class__(v)
-        return v
+        return self.__getitem__(key)
 
 def get_lr_func(lr_type="const", lr=None, r_div=None):
 
