@@ -16,7 +16,10 @@ class Component(object):
 
     __metaclass__ = ABCMeta
 
-    def __init__(self):
+    def __init__(self, name=None):
+        self.name = name
+        if name is None:
+            self.name = self.__class__.__name__.lower()
         self.RL_trainable = False
         self.params = {}
 

@@ -7,22 +7,21 @@ class ESNProp(PropRule):
     def __call__(self, data):
         components = self.components
         data = components.reservoir.prop_up_sequence(data)
-        data = components.lin_reg(data)
+        data = components.layer(data)
         return data
 
 class ESNTrain(TrainRule):
     def __call__(self, data, label, epochs):
         components = self.components
         data = components.reservoir.prop_up_sequence(data)
-        return components.lin_reg.train(data, label, epochs=1)
+        return components.layer.train(data, label, epochs=1)
 
 class ESNPlanner(Planner):
-    def __init__(self, components, labels):
+    def __init__(self, components):
         super(ESNPlanner, self).__init__(
             prop=ESNProp,
             train=ESNTrain,
-            components=components,
-            labels=labels
+            components=components
         )
 
 class ESN(Circuit):
@@ -31,7 +30,6 @@ class ESN(Circuit):
             planner=planner,
             components=[
                 Reservoir(n_visible, n_hidden, bind_prob_W=0.03, bind_prob_W_rec=0.1),
-                Layer(n_hidden, n_output, train_func_generator=gen_linear_regression_trainer, activate=linear)
-            ],
-            labels=['reservoir', 'lin_reg']
+                Layer(n_hidden, n_output, train_func_generator=gen_linear_regression_trainer, activate=linear),
+            ]
         )

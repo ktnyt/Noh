@@ -1,5 +1,22 @@
 import numpy as np
 
+def labelize(components):
+    labels = [component.name for component in components]
+    if len(labels) != len(set(labels)):
+        tmp = []
+        counts = {}
+        for label in labels:
+            if labels.count(label) > 1:
+                if label not in counts:
+                    counts[label] = 0
+                else:
+                    counts[label] += 1
+                tmp.append('{}{}'.format(label, counts[label]))
+            else:
+                tmp.append(label)
+        labels = tmp
+    return labels
+
 class Collection(object):
     keys = []
     values = []

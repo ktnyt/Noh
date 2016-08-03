@@ -1,14 +1,14 @@
 from abc import ABCMeta, abstractmethod
 
 from noh.component import Component
-from noh.utils import Collection
+from noh.utils import Collection, labelize
 
 class PropRule(object):
 
     __metaclass__ = ABCMeta
 
-    def __init__(self, components, labels=None):
-        self.components = Collection(values=components, keys=labels)
+    def __init__(self, components):
+        self.components = Collection(labelize(components), components)
 
     @abstractmethod
     def __call__(self, data):
@@ -18,19 +18,19 @@ class TrainRule(object):
 
     __metaclass__ = ABCMeta
 
-    def __init__(self, components, labels=None):
-        self.components = Collection(values=components, keys=labels)
+    def __init__(self, components):
+        self.components = Collection(labelize(components), components)
 
     @abstractmethod
     def __call__(self, data, label, epoch):
         raise NotImplementedError("`__call__` must be explicitly overridden")
 
 class Planner(object):
-    def __init__(self, prop, train, components, labels=None, **Rules):
-        self.components = Collection(values=components, keys=labels)
+    def __init__(self, prop, train, components, **Rules):
+        self.components = Collection(labelize(components), components)
         self.rules = {
-            'prop': prop(components, labels),
-            'train': train(components, labels)
+            'prop': prop(components),
+            'train': train(components)
         }
 
         for name in Rules:
@@ -53,9 +53,10 @@ class Planner(object):
         return self.train_rule(data, label, epoch)
 
 class Circuit(Component):
-    def __init__(self, planner, components, labels=None):
-        self.components = Collection(values=components, keys=labels)
-        self.planner = planner(components, labels)
+    def __init__(self, planner, components, name=None):
+        super(Circuit, self).__init__(name)
+        self.components = Collection(labelize(components), components)
+        self.planner = planner(components)
 
     def __call__(self, data):
         return self.planner(data)
