@@ -1,5 +1,6 @@
 from noh import circuit
 from noh import component
+from noh import environment
 
 Circuit = circuit.Circuit
 Component = component.Component

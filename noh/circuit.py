@@ -26,36 +26,43 @@ class TrainRule(object):
         raise NotImplementedError("`__call__` must be explicitly overridden")
 
 class Planner(object):
-    def __init__(self, components, prop, train, **Rules):
+    def __init__(self, components, PropRules, TrainRules, default_prop_name=None, default_train_name=None):
         self.components = DotAccessible(components)
-        self.rules = {
-            'prop': prop(components),
-            'train': train(components)
-        }
 
-        for name in Rules:
-            Rule = Rules[name]
-            self.rules[name] = Rule(components)
+        self.prop_rules = {}
+        for name in PropRules:
+            self.prop_rules[name] = PropRules[name](components)
+        if default_prop_name is None:
+            self.default_prop_rule = self.prop_rules.values()[0]
+        else:
+            self.default_prop_rule = self.prop_rules[default_prop_name]
 
-        self.prop_rule = self.rules['prop']
-        self.train_rule = self.rules['train']
+        self.train_rules = {}
+        for name in TrainRules:
+            self.train_rules[name] = TrainRules[name](components)
+        if default_train_name is None:
+            self.default_train_rule = self.train_rules.values()[0]
+        else:
+            self.default_train_rule = self.train_rules[default_train_name]
 
     def set_prop(self, name):
-        self.prop_rule = self.rules[name]
+        self.default_prop_rule = self.prop_rules[name]
 
     def set_train(self, name):
-        self.train_rule = self.rules[name]
+        self.default_train_rule = self.train_rules[name]
 
     def __call__(self, data):
-        return self.prop_rule(data)
+        return self.default_prop_rule(data)
 
-    def train(self, data, label, epoch):
-        return self.train_rule(data, label, epoch)
+    def train(self, data, label=None, reward=None, epochs=1):
+        return self.default_train_rule(data, label, reward, epochs)
 
 class Circuit(Component):
-    def __init__(self, planner, **components):
+    def __init__(self, planner, RL_trainable=False, **components):
+        super(Circuit, self).__init__(RL_trainable=RL_trainable)
         self.components = DotAccessible(components)
         self.planner = planner(components)
+
 
     def __call__(self, data):
         return self.planner(data)

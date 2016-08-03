@@ -10,3 +10,7 @@ def p_sig(x):
 
 def linear(x):
     return x
+
+def softmax(x):
+    e = np.exp(x)
+    return e/np.sum(e)

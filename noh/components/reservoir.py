@@ -25,7 +25,7 @@ class Reservoir(Layer):
         self.activate = activate
 
     def __call__(self, data):
-        self.prop_up(data)
+        return self.prop_up(data)
 
     def train(self, data, label, epochs, **kwargs):
         return 0
