@@ -7,7 +7,7 @@ from noh.components import RLNN
 n_stat = LunarLander_v2.n_stat
 n_act = LunarLander_v2.n_act
 
-rlnn = RLNN(n_visible=n_stat, n_hidden=200, n_output=n_act, resume=True)
+rlnn = RLNN(n_visible=n_stat, n_hidden=200, n_output=n_act, resume=False)
 noh_env = LunarLander_v2(rlnn, render=True)
 
 while True:

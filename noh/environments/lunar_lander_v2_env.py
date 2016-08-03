@@ -15,7 +15,6 @@ class LunarLander_v2(ReinforcementEnvironment):
         self.render = render
         self.env = gym.make("LunarLander-v2")
         self.observation = self.env.reset()
-        self.prev_x = None  # used in computing the difference frame
         self.xs, self.hs, self.dlogps, self.drs = [], [], [], []
         self.running_reward = None
         self.reward_sum = 0
@@ -38,11 +37,8 @@ class LunarLander_v2(ReinforcementEnvironment):
     def main_loop(self):
         if self.render: self.env.render()
 
-        cur_x = self.prepro()
-        x = cur_x - self.prev_x if self.prev_x is not None else np.zeros(self.__class__.n_stat)
-        prev_x = cur_x
+        x = self.observation
 
-        # forward the policy network and sample an action from the returned probability
         aprob, h = self.model(x)
         action = np.random.choice(range(self.__class__.n_act), p=softmax(aprob))
         # action = 2 if np.random.uniform() < aprob else 3  # roll the dice!
@@ -59,9 +55,11 @@ class LunarLander_v2(ReinforcementEnvironment):
         self.observation, reward, done, info = self.env.step(action)
         self.reward_sum += reward
 
-        self.drs.append(reward)  # record reward (has to be done after we call step() to get reward for previous action)
+        # record reward (has to be done after we call step() to get reward for previous action)
+        self.drs.append(reward)  
 
-        if done:  # an episode finished
+        # an episode finished
+        if done:  
             self.episode_number += 1
 
             # stack together all inputs, hidden states, action gradients, and rewards for this episode
@@ -95,24 +93,11 @@ class LunarLander_v2(ReinforcementEnvironment):
             print ('ep %d: game finished, reward: %f' % (self.episode_number, reward)) + (
             '' if reward == -1 else ' !!!!!!!!')
 
-
-    def prepro(self):
-        """ prepro 210x160x3 uint8 frame into 6400 (80x80) 1D float vector """
-        I = self.observation
-        I = I[35:195]  # crop
-        I = I[::2, ::2, 0]  # downsample by factor of 2
-        I[I == 144] = 0  # erase background (background type 1)
-        I[I == 109] = 0  # erase background (background type 2)
-        I[I != 0] = 1  # everything else (paddles, ball) just set to 1
-        return I.astype(np.float).ravel()
-
-
     def discount_rewards(self, r, gamma=0.9):
         """ take 1D float array of rewards and compute discounted reward """
         discounted_r = np.zeros_like(r)
         running_add = 0
         for t in reversed(xrange(0, r.size)):
-            if r[t] != 0: running_add = 0  # reset the sum, since this was a game boundary (pong specific!)
             running_add = running_add * gamma + r[t]
             discounted_r[t] = running_add
         return discounted_r
