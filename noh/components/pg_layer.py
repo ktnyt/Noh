@@ -2,7 +2,7 @@ import numpy as np
 
 from noh.components import Layer
 from noh.activate_functions import softmax
-
+from noh.utils import get_standardized_rewards, get_discounted_rewards
 
 class PGLayer(Layer):
     def __init__(self, n_visible, n_hidden, is_return_id=True, is_argmax=False,
@@ -58,9 +58,9 @@ class PGLayer(Layer):
             episode_logp = np.vstack(self.d_logp_hist)
             episode_reward = np.vstack(self.reward_hist)
 
-            episode_reward = self.get_standardized_rewards(episode_reward)
-            # episode_reward = self.get_discounted_rewards(episode_reward)
-
+            episode_reward = get_discounted_rewards(episode_reward, gamma=self.gamma,
+                                                    reward_reset_checker=self.reward_reset_checker)
+            episode_reward = get_standardized_rewards(episode_reward)
 
             episode_logp *= episode_reward
             self.dW += np.dot(episode_x.T, episode_logp)
@@ -86,22 +86,5 @@ class PGLayer(Layer):
         h = self.activate(np.dot(stat, self.W) + self.b_hidden)
         return h
 
-    def get_standardized_rewards(self, rewards):
-        #res_rewards = self.get_discounted_rewards(rewards)
-        res_rewards = rewards
 
-        res_rewards -= np.mean(res_rewards)
-        res_rewards /= np.std(res_rewards)
-        return res_rewards
-
-    def get_discounted_rewards(self, rewards):
-        discounted_reward_list = np.zeros_like(rewards)
-        discounted_reward = 0.
-        for t in reversed(xrange(0, rewards.size)):
-            if self.reward_reset_checker(self.reward_hist[t]):
-                discounted_reward = 0.
-            discounted_reward = (discounted_reward * self.gamma) + rewards[t]
-            discounted_reward_list[t] = discounted_reward
-
-        return discounted_reward_list
 
