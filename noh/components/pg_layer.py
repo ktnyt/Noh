@@ -5,7 +5,7 @@ from noh.activate_functions import softmax
 
 class PGLayer(Layer):
     def __init__(self, n_visible, n_hidden, is_return_id=True,
-                 mbatch_size=10, lr=1e-5, decay_rate=0.9, gamma=0.5,
+                 mbatch_size=10, lr=1e-5, decay_rate=0.9, gamma=0.9,
                  activate=softmax, reward_reset_checker=None):
 
         super(PGLayer, self).__init__(n_visible, n_hidden)
@@ -25,11 +25,14 @@ class PGLayer(Layer):
         self.dW = np.zeros_like(self.W)
         self.db_hidden = np.zeros_like(self.b_hidden)
         self.grad_counter = 0
-
+        self.epsilon = 1.0
 
     def __call__(self, data):
         act_prob = self.policy_prop(stat=data)
-        act_id = np.random.choice(range(self.n_hidden), p=act_prob)
+        if np.random.random() < self.epsilon:
+            act_id = np.random.choice(range(self.n_hidden))
+        else:
+            act_id = np.random.choice(range(self.n_hidden), p=act_prob)
         act_vec = np.array([1 if i == act_id else 0 for i in xrange(self.n_hidden)])
 
         self.x_hist.append(data)
@@ -39,7 +42,7 @@ class PGLayer(Layer):
         return act_id if self.is_return_id else act_prob
 
     def train(self):
-
+        
         episode_x = np.vstack(self.x_hist)
         episode_logp = np.vstack(self.d_logp_hist)
         episode_reward = np.vstack(self.reward_hist)
@@ -51,6 +54,11 @@ class PGLayer(Layer):
         self.grad_counter += 1
 
         if self.grad_counter > self.mbatch_size:
+
+            print self.epsilon, "->" ,
+            self.epsilon *= 0.9
+            print self.epsilon
+
             self.rmsprop_cache_W = self.decay_rate * self.rmsprop_cache_W + (1 - self.decay_rate) * self.dW ** 2
             self.W += self.lr * self.dW / (np.sqrt(self.rmsprop_cache_b_hidden) + 1e-5) / self.grad_counter
             self.dW = np.zeros_like(self.W)
