@@ -6,24 +6,23 @@ import numpy as np
 
 class RLNN(Component):
     def __init__(self, n_visible, n_hidden, n_output, lr=1e-4, gamma=0.99, decay_rate=0.99, resume=False):
-        # hyperparameters
         self.n_visible = n_visible
         self.n_hidden = n_hidden  # number of hidden layer neurons
         self.n_output = n_output
         self.learning_rate = lr
         self.gamma = gamma  # discount factor for reward
         self.decay_rate = decay_rate  # decay factor for RMSProp leaky sum of grad^2
-        # resume = False # resume from previous checkpoint?
+        self.xs, self.hs, self.dlogps, self.drs = [], [], [], []
+
         resume = resume
         if resume:
             self.parms = pickle.load(open('save.p', 'rb'))
         else:
             self.parms = {}
-            self.parms['W1'] = np.random.randn(self.n_hidden, self.n_visible) / np.sqrt(self.n_visible)  # "Xavier" initialization
+            self.parms['W1'] = np.random.randn(self.n_hidden, self.n_visible) / np.sqrt(self.n_visible)
             self.parms['W2'] = np.random.randn(self.n_output, self.n_hidden) / np.sqrt(self.n_hidden)
-        self.grad_buffer = {k: np.zeros_like(v) for k, v in
-                       self.parms.iteritems()}  # update buffers that add up gradients over a batch
-        self.rmsprop_cache = {k: np.zeros_like(v) for k, v in self.parms.iteritems()}  # rmsprop memory
+        self.grad_buffer = {k: np.zeros_like(v) for k, v in self.parms.iteritems()}
+        self.rmsprop_cache = {k: np.zeros_like(v) for k, v in self.parms.iteritems()}
 
     def __call__(self, stat):
         return self.policy_forward(stat)

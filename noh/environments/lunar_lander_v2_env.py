@@ -19,43 +19,40 @@ class LunarLander_v2(ReinforcementEnvironment):
         self.running_reward = None
         self.reward_sum = 0
         self.episode_number = 0
-        self.batch_size = 10  # every how many episodes to do a param update?
-
+        self.batch_size = 10
 
     def get_reward(self):
-        pass
+        return self.reward
 
 
     def get_stat(self):
-        pass
+        return self.observation
 
 
-    def set_act(self):
-        pass
+    def set_act(self, action):
+        return self.env.step(action)
 
 
     def main_loop(self):
         if self.render: self.env.render()
 
-        x = self.observation
-
+        x = self.get_stat()
+        
         aprob, h = self.model(x)
         action = np.random.choice(range(self.__class__.n_act), p=softmax(aprob))
-        # action = 2 if np.random.uniform() < aprob else 3  # roll the dice!
+        print aprob
+        self.xs.append(x)
+        self.hs.append(h)
 
-        # record various intermediates (needed later for backprop)
-        self.xs.append(x)  # observation
-        self.hs.append(h)  # hidden state
-        # y = 1 if action == 2 else 0  # a "fake label"
         y = np.array([1 if action == i else 0 for i in xrange(self.n_act)])
-        self.dlogps.append(
-            y - aprob)  # grad that encourages the action that was taken to be taken (see http://cs231n.github.io/neural-networks-2/#losses if confused)
-
+        self.dlogps.append(y - aprob)
         # step the environment and get new measurements
-        self.observation, reward, done, info = self.env.step(action)
+
+        self.observation, reward, done, info = self.set_act(action)
+
+        # reward = self.get_reward()
         self.reward_sum += reward
 
-        # record reward (has to be done after we call step() to get reward for previous action)
         self.drs.append(reward)  
 
         # an episode finished
@@ -90,14 +87,14 @@ class LunarLander_v2(ReinforcementEnvironment):
             self.prev_x = None
 
         if reward != 0:  # Pong has either +1 or -1 reward exactly when game ends.
-            print ('ep %d: game finished, reward: %f' % (self.episode_number, reward)) + (
-            '' if reward == -1 else ' !!!!!!!!')
+            print ('ep %d: game finished, reward: %f' % (self.episode_number, reward))
 
     def discount_rewards(self, r, gamma=0.9):
         """ take 1D float array of rewards and compute discounted reward """
         discounted_r = np.zeros_like(r)
         running_add = 0
         for t in reversed(xrange(0, r.size)):
+            if r[t] == 100 or r[t] == -100: running_add = 0
             running_add = running_add * gamma + r[t]
             discounted_r[t] = running_add
         return discounted_r
