@@ -8,7 +8,7 @@ class PGLayerLuna(Layer):
                  mbatch_size=10, lr=1e-9, decay_rate=0.99, gamma=0.9,
                  activate=softmax, reward_reset_checker=None):
 
-        super(PGLayerLuna, self).__init__(n_visible, n_hidden)
+        super(PGLayerLuna, self).__init__(n_visible, n_hidden, rl_trainable=True)
         self.is_return_id = is_return_id
         self.mbatch_size = mbatch_size
         self.lr = lr

@@ -6,8 +6,8 @@ import numpy as np
 
 
 class Layer(Component):
-    def __init__(self, n_visible, n_hidden, train_func_generator=gen_sgd_trainer, activate=sigmoid):
-        super(Layer, self).__init__()
+    def __init__(self, n_visible, n_hidden, train_func_generator=gen_sgd_trainer, activate=sigmoid, rl_trainable=False):
+        super(Layer, self).__init__(rl_trainable=rl_trainable)
         a = 1. / n_visible
 
         self.n_visible = n_visible

@@ -58,8 +58,8 @@ class Planner(object):
         return self.default_train_rule(data, label, reward, epochs)
 
 class Circuit(Component):
-    def __init__(self, planner, RL_trainable=False, **components):
-        super(Circuit, self).__init__(RL_trainable=RL_trainable)
+    def __init__(self, planner, rl_trainable=False, **components):
+        super(Circuit, self).__init__(rl_trainable=rl_trainable)
         self.components = DotAccessible(components)
         self.planner = planner(components)
 

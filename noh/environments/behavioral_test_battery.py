@@ -40,44 +40,13 @@ class BehavioralTestBattery(ReinforcementEnvironment):
                 print area,
             print " "
 
-    def train(self, epochs):
-        for epoch in xrange(epochs):
-            print "==================== {0} th episode ====================".format(epoch)
-            self.reset()
-            self.main_loop()
-            self.model.train(self.stat_history, self.act_list, self.reward_history)
-
-    def main_loop(self):
-        for _ in xrange(self.__class__.episode_size):
-            stat = self.get_stat()
-            self.stat_history.append(stat)
-
-            print "stat : ", stat
-            act_prob = self.model(stat)
-            self.act_prob_history.append(act_prob)
-            act_id = np.random.choice(range(len(act_prob)), p=act_prob)
-            self.act_history.append(act_id)
-            self.set_act(act_id)
-
-            reward = self.get_reward()
-            self.reward_history.append(reward)
-            self.print_stat()
-
-    def reset(self):
-        self.pos = self.__class__.default_pos
-        self.reward_pos_list = self.__class__.default_reward_pos_list[:]
-        self.reward = 0
-
-    def get_stat(self):
-        """ Return a vector """
-        return self.pos2id(self.pos)
-
-    def set_act(self, act_id):
+    def step(self, act_id):
         """ set a vector """
+        print "act id", act_id
         act = self.__class__.act_list[act_id]
-
         new_y = self.pos[0]
         new_x = self.pos[1]
+        reward = t_pos = None
         for i in xrange(self.act_punctuation):
 
             new_y += (act[0] / self.act_punctuation)
@@ -88,29 +57,47 @@ class BehavioralTestBattery(ReinforcementEnvironment):
                     new_y > self.__class__.map_len[0] or new_x > self.__class__.map_len[1] or
                     self.__class__.map[new_y][new_x] == 0):
                 """" out of map """
-                self.reward = 0
+                reward = 0
             elif t_pos in self.reward_pos_list:
                 """ get reward """
                 self.reward_pos_list.remove(t_pos)
-                self.reward = 1
+                reward = 1
             elif self.__class__.map[new_y][new_x] == 2:
                 """ unrewarding place"""
                 self.pos = (new_y, new_x)
-                self.reward = -1
+                reward = -1
             else:
                 """ ordinal place"""
                 self.pos = (new_y, new_x)
-                self.reward = 0
-                
+                reward = 0
+        return self.pos2id(t_pos), reward, False, None
 
-    def get_reward(self):
-        """ Return some scholar value """
-        return self.reward
+    def exec_episode(self):
+        episode_reward = 0
+        observation = self.reset()
+
+        for frame in xrange(self.__class__.episode_size):
+            if self.render: self.print_stat()
+            action = self.model(observation)
+            observation, reward, done, info = self.step(action)
+            self.model.set_reward(reward)
+            episode_reward += reward
+            if done: break
+
+        print ("ep %d: game finished, reward: %f" %
+               (self.episode_number, episode_reward))
+        self.episode_number += 1
 
     def pos2id(self, pos):
         res = np.zeros(shape=self.__class__.map_len)
         res[pos[0]][pos[1]] = 1.
         return res.flatten()
+
+    def reset(self):
+        self.pos = self.__class__.default_pos
+        self.reward_pos_list = self.__class__.default_reward_pos_list[:]
+        self.reward = 0
+        return self.pos2id(self.pos)
 
     def print_stat(self):
         print "- - - - - - - - - - - - - - - - -"

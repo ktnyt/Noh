@@ -1,6 +1,7 @@
 from noh import Component
 import numpy as np
 
+
 class RLTester(Component):
 
     def __init__(self, n_stat, n_act, n_reward=1):

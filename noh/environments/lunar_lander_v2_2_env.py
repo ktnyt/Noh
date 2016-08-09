@@ -1,53 +1,48 @@
 import gym
-import numpy as np
 
 from noh.environment import ReinforcementEnvironment
-from noh.activate_functions import softmax
 
 
 class LunarLander_v2(ReinforcementEnvironment):
+
     n_stat = 8
     n_act = 4
+    episode_size = 200
+
     @classmethod
     def gen_reward_reset_checker(cls):
         return lambda x: True if x == 100 or x == -100 else False
 
     def __init__(self, model, render=False):
+        super(LunarLander_v2, self).__init__(model, render)
         self.model = model
-        self.render = render
         self.env = gym.make("LunarLander-v2")
-        self.observation = self.env.reset()
-        self.running_reward = None
-        self.reward_sum = 0
-        self.episode_number = 0
         self.batch_size = 10
         self.action = None
         self.frame = 0
 
-    def get_reward(self):
-        return self.reward
-
-    def get_stat(self):
-        return self.observation
-
-    def set_act(self, action):
+    def step(self, action):
         return self.env.step(action)
 
-    def main_loop(self):
-        if self.render: self.env.render()
+    def exec_episode(self):
+        episode_reward = 0
 
-        stat = self.observation
-        if self.frame % 1 == 0:
-            self.action = self.model(stat)
-        self.observation, reward, done, info = self.env.step(self.action)
-        self.model.set_reward(reward)
-        self.reward_sum += reward
+        observation = self.env.reset()
+        for frame in xrange(self.__class__.episode_size):
+            if self.render: self.print_stat()
+            action = self.model(observation)
+            observation, reward, done, info = self.env.step(action)
+            self.model.set_reward(reward)
+            episode_reward += reward
+            if done: break
 
-        # an episode finished
-        if done:
-            self.model.train()
-            self.episode_number += 1
-            print ('ep %d: game finished, reward: %f' % (self.episode_number, self.reward_sum))
-            self.observation = self.env.reset()
-            self.reward_sum = 0
-            self.frame = 0
+        self.model.train()
+        self.episode_number += 1
+        print ('ep %d: game finished, reward: %f' %
+               (self.episode_number, episode_reward))
+
+    def print_stat(self):
+        self.env.render()
+
+    def reset(self):
+        return self.env.reset()

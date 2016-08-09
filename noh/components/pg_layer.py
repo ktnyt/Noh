@@ -3,6 +3,7 @@ import numpy as np
 from noh.components import Layer
 from noh.activate_functions import softmax
 
+
 class PGLayer(Layer):
     def __init__(self, n_visible, n_hidden, is_return_id=True, is_argmax=False,
                  mbatch_size=10, lr=1e-5, decay_rate=0.99, gamma=0.9,
@@ -25,7 +26,7 @@ class PGLayer(Layer):
         self.dW = np.zeros_like(self.W)
         self.db_hidden = np.zeros_like(self.b_hidden)
         self.grad_counter = 0
-        self.epsilon = 0.9
+        self.epsilon = 0.1
         self.is_argmax = is_argmax
         self.prev_mean = 0.
 
@@ -65,11 +66,6 @@ class PGLayer(Layer):
             self.dW += np.dot(episode_x.T, episode_logp)
             self.db_hidden += np.sum(episode_logp, axis=0)
 
-
-            print self.epsilon, "->" ,
-            self.epsilon *= 0.9
-            print self.epsilon
-
             self.rmsprop_cache_W = self.decay_rate * self.rmsprop_cache_W + (1 - self.decay_rate) * self.dW**2
             self.W += self.lr * self.dW / (np.sqrt(self.rmsprop_cache_b_hidden) + 1e-5)
             self.dW = np.zeros_like(self.W)
@@ -94,9 +90,7 @@ class PGLayer(Layer):
         #res_rewards = self.get_discounted_rewards(rewards)
         res_rewards = rewards
 
-        print np.mean(res_rewards),
         res_rewards -= np.mean(res_rewards)
-        print np.std(res_rewards)
         res_rewards /= np.std(res_rewards)
         return res_rewards
 

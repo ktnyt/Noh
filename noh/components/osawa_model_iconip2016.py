@@ -1,16 +1,13 @@
 from noh import Circuit, PropRule, TrainRule, Planner
-from noh.components import Layer, Reservoir, RBM
-from noh.training_functions import gen_sgd_trainer
+from noh.components import PGLayer
 from noh.activate_functions import softmax
 
-import numpy as np
 
 class StatProp(PropRule):
     def __call__(self, data):
         print data
         data = self.components.stl(data)
         data = self.components.softmax_layer(data)
-        print data
         return data
 
 
@@ -55,15 +52,18 @@ class ICONIP2016Planner(Planner):
         # act_id = np.argmax(act_vec)
         return act_vec
 
-    def train(self, data, label, reward, epochs):
+    def train(self, data=None, label=None, reward=None, epochs=None):
         pass
 
+
 class ModelICONIP2016(Circuit):
-    def __init__(self, n_visible, n_hidden, n_output, n_reward_hidden, stl, planner=ICONIP2016Planner):
+    def __init__(self, n_visible, n_hidden, n_output, stl, planner=ICONIP2016Planner):
         super(ModelICONIP2016, self).__init__(
             planner=planner,             
             RL_trainable=True,
             stl=stl,
-            softmax_layer=Layer(n_hidden, n_output, train_func_generator=gen_sgd_trainer, activate=softmax),
-            reward_rbm=RBM(n_visible=n_hidden, n_hidden=n_reward_hidden, lr_type="hinton_r_div", r_div=100)
-        )
+            softmax_layer=PGLayer(n_visible=n_hidden, n_hidden=n_output,
+                                  is_return_id=True, is_argmax=False,
+                                  mbatch_size=200, lr=0.01, decay_rate=0.9, gamma=0.9,
+                                  activate=softmax, reward_reset_checker=None),
+            rl_trainable=True)
