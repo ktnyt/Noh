@@ -1,16 +1,17 @@
-import numpy as np
-
-from noh.components import Layer, RLTrainable
+from noh.components import Layer
+from noh.components import RLTrainable
 from noh.activate_functions import softmax
 from noh.utils import get_discounted_rewards, get_standardized_rewards
+import numpy as np
+
 
 class PGLayerLuna(Layer, RLTrainable):
     def __init__(self, n_visible, n_hidden, is_return_id=True, is_argmax=False,
                  mbatch_size=10, lr=1e-9, decay_rate=0.99, gamma=0.9,
                  activate=softmax, reward_reset_checker=None):
 
-        Layer.__init__(n_visible, n_hidden, rl_trainable=True)
-        RLTrainable.__init__(is_return_id=is_return_id, is_argmax=is_argmax,
+        Layer.__init__(self, n_visible, n_hidden)
+        RLTrainable.__init__(self, is_return_id=is_return_id, is_argmax=is_argmax,
                              mbatch_size=mbatch_size,
                              decay_rate=decay_rate, gamma=gamma,
                              reward_reset_checker=reward_reset_checker)
@@ -18,6 +19,7 @@ class PGLayerLuna(Layer, RLTrainable):
         self.lr = lr
         self.activate = activate
 
+        print self.rl_trainable
 
     def __call__(self, data):
 
@@ -50,8 +52,9 @@ class PGLayerLuna(Layer, RLTrainable):
             episode_reward_landing = np.vstack(self.reward_hist_landing)
 
             # episode_reward = self.get_standardized_rewards(episode_reward)
-            episode_reward = self.get_discounted_rewards(episode_reward)
-            episode_reward_landing = self.get_discounted_rewards(episode_reward_landing) / 100.
+            episode_reward = get_discounted_rewards(episode_reward, self.gamma, self.reward_reset_checker)
+            episode_reward_landing = get_discounted_rewards(episode_reward_landing, self.gamma,
+                                                            self.reward_reset_checker) / 100.
 
 
             episode_logp *= (episode_reward + episode_reward_landing)

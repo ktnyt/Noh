@@ -42,7 +42,6 @@ class BehavioralTestBattery(ReinforcementEnvironment):
 
     def step(self, act_id):
         """ set a vector """
-        print "act id", act_id
         act = self.__class__.act_list[act_id]
         new_y = self.pos[0]
         new_x = self.pos[1]
@@ -57,23 +56,25 @@ class BehavioralTestBattery(ReinforcementEnvironment):
                     new_y > self.__class__.map_len[0] or new_x > self.__class__.map_len[1] or
                     self.__class__.map[new_y][new_x] == 0):
                 """" out of map """
-                reward = 0
+                reward = -1.
             elif t_pos in self.reward_pos_list:
                 """ get reward """
                 self.reward_pos_list.remove(t_pos)
-                reward = 1
+                reward = 1.
             elif self.__class__.map[new_y][new_x] == 2:
                 """ unrewarding place"""
                 self.pos = (new_y, new_x)
-                reward = -1
+                reward = -1.
             else:
                 """ ordinal place"""
                 self.pos = (new_y, new_x)
-                reward = 0
+                reward = 0.
         return self.pos2id(t_pos), reward, False, None
 
     def exec_episode(self):
         episode_reward = 0
+        episode_acts = []
+        episode_stats = []
         observation = self.reset()
 
         for frame in xrange(self.__class__.episode_size):
@@ -81,8 +82,18 @@ class BehavioralTestBattery(ReinforcementEnvironment):
             action = self.model(observation)
             observation, reward, done, info = self.step(action)
             self.model.set_reward(reward)
+
             episode_reward += reward
+            episode_acts.append(action)
+            episode_stats.append(observation)
+
             if done: break
+
+        self.model.train()
+
+        self.reward_history.append(episode_reward)
+        self.act_history.append(episode_acts)
+        self.stat_history.append(episode_stats)
 
         print ("ep %d: game finished, reward: %f" %
                (self.episode_number, episode_reward))

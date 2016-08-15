@@ -57,15 +57,15 @@ class Planner(object):
     def train(self, data, label=None, reward=None, epochs=1):
         return self.default_train_rule(data, label, reward, epochs)
 
+
 class Circuit(Component):
-    def __init__(self, planner, rl_trainable=False, **components):
-        super(Circuit, self).__init__(rl_trainable=rl_trainable)
+    def __init__(self, planner, **components):
+        super(Circuit, self).__init__()
         self.components = DotAccessible(components)
         self.planner = planner(components)
-
 
     def __call__(self, data):
         return self.planner(data)
 
-    def train(self, data, label, epochs):
+    def train(self, data=None, label=None, epochs=None):
         return self.planner.train(data, label, epochs)

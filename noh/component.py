@@ -1,5 +1,6 @@
 from abc import ABCMeta, abstractmethod
 
+
 class Component(object):
     """ Callable Component for Circuits with training capability.
 
@@ -16,8 +17,7 @@ class Component(object):
 
     __metaclass__ = ABCMeta
 
-    def __init__(self, rl_trainable=False):
-        self.rl_trainable = rl_trainable
+    def __init__(self):
         self.params = {}
 
     @abstractmethod

@@ -1,34 +1,23 @@
 import numpy as np
 
-from noh.components import Layer
+from noh.components import Layer, RLTrainable
 from noh.activate_functions import softmax
 from noh.utils import get_standardized_rewards, get_discounted_rewards
 
-class PGLayer(Layer):
+
+class PGLayer(Layer, RLTrainable):
+
     def __init__(self, n_visible, n_hidden, is_return_id=True, is_argmax=False,
-                 mbatch_size=10, lr=1e-5, decay_rate=0.99, gamma=0.9,
+                 mbatch_size=10, epsilon=0.1, lr=1e-5, decay_rate=0.99, gamma=0.9,
                  activate=softmax, reward_reset_checker=None):
 
-        super(PGLayer, self).__init__(n_visible, n_hidden)
-        self.is_return_id = is_return_id
-        self.mbatch_size = mbatch_size
-        self.lr = lr
-        self.decay_rate = decay_rate
-        self.gamma = gamma
-        self.activate = activate
-        if reward_reset_checker is None:
-            reward_reset_checker = lambda x: False
-        self.reward_reset_checker = reward_reset_checker
+        Layer.__init__(self, n_visible, n_hidden)
+        RLTrainable.__init__(self, is_return_id=is_return_id, is_argmax=is_argmax, mbatch_size=mbatch_size,
+                             epsilon=epsilon, decay_rate=decay_rate, gamma=gamma,
+                             reward_reset_checker=reward_reset_checker)
 
-        self.x_hist, self.d_logp_hist, self.reward_hist = [], [], []
-        self.rmsprop_cache_W = np.zeros_like(self.W)
-        self.rmsprop_cache_b_hidden = np.zeros_like(self.b_hidden)
-        self.dW = np.zeros_like(self.W)
-        self.db_hidden = np.zeros_like(self.b_hidden)
-        self.grad_counter = 0
-        self.epsilon = 0.1
-        self.is_argmax = is_argmax
-        self.prev_mean = 0.
+        self.lr = lr
+        self.activate = activate
 
     def __call__(self, data):
 
@@ -46,33 +35,36 @@ class PGLayer(Layer):
         self.d_logp_hist.append(act_vec - act_prob)
         self.reward_hist.append(None)
 
+        #print act_prob
         return act_id if self.is_return_id else act_prob
 
     def train(self):
 
         self.grad_counter += 1
 
-        if self.grad_counter > self.mbatch_size:
+        if self.grad_counter >= self.mbatch_size:
 
             episode_x = np.vstack(self.x_hist)
             episode_logp = np.vstack(self.d_logp_hist)
             episode_reward = np.vstack(self.reward_hist)
 
+            #print episode_reward
             episode_reward = get_discounted_rewards(episode_reward, gamma=self.gamma,
                                                     reward_reset_checker=self.reward_reset_checker)
-            episode_reward = get_standardized_rewards(episode_reward)
+            #print episode_reward.flatten()
+            #episode_reward = get_standardized_rewards(episode_reward)
 
             episode_logp *= episode_reward
-            self.dW += np.dot(episode_x.T, episode_logp)
-            self.db_hidden += np.sum(episode_logp, axis=0)
+            self.grad["W"] += np.dot(episode_x.T, episode_logp)
+            self.grad["b_hidden"] += np.sum(episode_logp, axis=0)
 
-            self.rmsprop_cache_W = self.decay_rate * self.rmsprop_cache_W + (1 - self.decay_rate) * self.dW**2
-            self.W += self.lr * self.dW / (np.sqrt(self.rmsprop_cache_b_hidden) + 1e-5)
-            self.dW = np.zeros_like(self.W)
+            self.rmsprop_cache["W"] = self.decay_rate * self.rmsprop_cache["W"] + (1 - self.decay_rate) * self.grad["W"]**2
+            self.W += self.lr * self.grad["W"] / (np.sqrt(self.rmsprop_cache["b_hidden"]) + 1e-5)
+            self.grad["W"] = np.zeros_like(self.W)
 
-            self.rmsprop_cache_b_hidden = self.decay_rate * self.rmsprop_cache_b_hidden + (1 - self.decay_rate) * self.db_hidden**2
-            self.b_hidden += self.lr * self.db_hidden / (np.sqrt(self.rmsprop_cache_b_hidden) + 1e-5)
-            self.db_hidden = np.zeros_like(self.b_hidden)
+            self.rmsprop_cache["b_hidden"] = self.decay_rate * self.rmsprop_cache["b_hidden"] + (1 - self.decay_rate) * self.grad["b_hidden"]**2
+            self.b_hidden += self.lr * self.grad["b_hidden"] / (np.sqrt(self.rmsprop_cache["b_hidden"]) + 1e-5)
+            self.grad["b_hidden"] = np.zeros_like(self.b_hidden)
 
             self.grad_counter = 0
 

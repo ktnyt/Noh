@@ -20,7 +20,8 @@ class ReinforcementEnvironment(Environment):
     def __init__(self, model, render=False):
         super(ReinforcementEnvironment, self).__init__(model)
 
-        if hasattr(model, "rl_trainable"):
+        if not hasattr(model, "rl_trainable"):
+            print model
             raise ValueError("model should be RL trainable")
 
         self.render = render

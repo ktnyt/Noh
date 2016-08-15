@@ -1,3 +1,4 @@
+import os
 from noh.environments import BehavioralTestBattery
 
 import numpy as np
@@ -10,7 +11,8 @@ class EightArmRadialMaze(BehavioralTestBattery):
     n_reward = 1
 
     map = []
-    for line in open("../noh/environments/eight_arm_radial_maze_map.dat"):
+    filename = os.path.dirname(os.path.abspath(__file__)) + '/eight_arm_radial_maze_map.dat'
+    for line in open(filename):
         map.append([int(d) for d in line[:-1].split(" ")])
 
     map_len = (len(map), len(map[0]))
@@ -24,6 +26,21 @@ class EightArmRadialMaze(BehavioralTestBattery):
                 (6, -6), (6, 0), (6, 6)]
 
     episode_size = 15
+
+    @classmethod
+    def gen_reward_reset_checker(cls):
+
+        class reward_reset_checker():
+
+            def __init__(self):
+                self.episode_id = 0
+                self.episode_size = cls.episode_size
+
+            def __call__(self, x):
+                self.episode_id += 1
+                return True if (self.episode_id-1) % self.episode_size == 0 else False
+
+        return reward_reset_checker()
 
     def __init__(self, model, act_punctuation=2):
         super(EightArmRadialMaze, self).__init__(model, act_punctuation)
