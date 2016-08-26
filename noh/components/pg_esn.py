@@ -1,5 +1,5 @@
 from noh import Circuit, PropRule, TrainRule, Planner
-from noh.components import PGLayerLuna, Reservoir
+from noh.components import PGLayer, Reservoir
 from noh.training_functions import gen_linear_regression_trainer
 from noh.activate_functions import linear
 

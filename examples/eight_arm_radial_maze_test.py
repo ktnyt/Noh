@@ -25,7 +25,8 @@ if __name__ == "__main__":
 
     env = EightArmRadialMaze(model)
     f_rewards = open("eight_arm_radial_maze_rewards.dat", "w")
-    while True:
+    while True\
+            :
         env.exec_episode()
         f_rewards.write(str(env.reward_history[-1]) + "\n")
 
