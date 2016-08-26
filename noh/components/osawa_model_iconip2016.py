@@ -12,6 +12,7 @@ class StatProp(PropRule):
 
 class ActionTrain(TrainRule):
     def __call__(self):
+        self.components.stl.train()
         self.components.output_layer.train()
         return None
 
@@ -28,8 +29,10 @@ class ICONIP2016Planner(Planner):
         self.is_action_train = False
 
     def __call__(self, data):
+        #print data, "->",
         act_vec = self.default_prop_rule(data)
         # act_id = np.argmax(act_vec)
+        #print act_vec
         return act_vec
 
     def train(self, data=None, label=None, reward=None, epochs=None):
@@ -43,3 +46,6 @@ class ModelICONIP2016(Circuit, RLTrainable):
 
     def set_reward(self, reward):
         self.components.output_layer.set_reward(reward)
+
+    def reset(self):
+        self.components.stl.reset()

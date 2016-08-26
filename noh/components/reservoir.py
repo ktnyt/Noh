@@ -45,6 +45,7 @@ class Reservoir(Layer):
         return np.array(hid_list)
 
     def prop_down(self, data):
-        raise NotImplementationError("Reservoir Class could not prop_down")
+        raise NotImplementedError("Reservoir Class could not prop_down")
 
-    
+    def reset(self):
+        self.prev_hid = np.zeros(self.n_hidden)

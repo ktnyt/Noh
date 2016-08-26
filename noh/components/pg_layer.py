@@ -47,17 +47,17 @@ class PGLayer(Layer, RLTrainable):
         if error is None:
             if self.grad_counter < self.mbatch_size:
                 return
-
+            print "train"
             error = np.vstack(self.d_logp_hist)
             episode_reward = np.vstack(self.reward_hist)
-            episode_reward = get_discounted_rewards(episode_reward, gamma=self.gamma,
-                                                    reward_reset_checker=self.reward_reset_checker)
-            episode_reward = get_standardized_rewards(episode_reward)
+            #episode_reward = get_discounted_rewards(episode_reward, gamma=self.gamma,
+            #                                        reward_reset_checker=self.reward_reset_checker)
+            #episode_reward = get_standardized_rewards(episode_reward)
             error *= episode_reward
 
         self.grad["W"] += np.dot(episode_x.T, error)
         self.grad["b_hidden"] += np.sum(error, axis=0)
-        for key in ["W"]:
+        for key in ["W", "b_hidden"]:
             self.rmsprop_cache[key] = self.decay_rate * self.rmsprop_cache[key] + (1 - self.decay_rate) * self.grad[key]**2
             param = self.params[key]()
             param += self.lr * self.grad[key] / (np.sqrt(self.rmsprop_cache[key]) + 1e-5)

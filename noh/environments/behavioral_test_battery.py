@@ -19,7 +19,7 @@ class BehavioralTestBattery(ReinforcementEnvironment):
 
     episode_size = 0
 
-    def __init__(self, model, act_punctuation=2):
+    def __init__(self, model, act_punctuation=3):
         super(BehavioralTestBattery, self).__init__(model)
         self.pos = self.reward_pos_list = None
         self.reward = 0
@@ -45,31 +45,30 @@ class BehavioralTestBattery(ReinforcementEnvironment):
         act = self.__class__.act_list[act_id]
         new_y = self.pos[0]
         new_x = self.pos[1]
-        reward = t_pos = None
+        reward = 0
+
         for i in xrange(self.act_punctuation):
 
             new_y += (act[0] / self.act_punctuation)
             new_x += (act[1] / self.act_punctuation)
-
-            t_pos = tuple(self.pos)
+            new_pos = (new_y, new_x)
             if (new_y < 0 or new_x < 0 or
-                    new_y > self.__class__.map_len[0] or new_x > self.__class__.map_len[1] or
-                    self.__class__.map[new_y][new_x] == 0):
+                new_y > self.__class__.map_len[0] or new_x > self.__class__.map_len[1] or
+                self.__class__.map[new_y][new_x] == 0):
                 """" out of map """
-                reward = -1.
-            elif t_pos in self.reward_pos_list:
+                return self.pos2id(self.pos), -1, False, None
+            elif new_pos in self.reward_pos_list:
                 """ get reward """
-                self.reward_pos_list.remove(t_pos)
-                reward = 1.
+                self.reward_pos_list.remove(new_pos)
+                reward += 1.
             elif self.__class__.map[new_y][new_x] == 2:
                 """ unrewarding place"""
-                self.pos = (new_y, new_x)
                 reward = -1.
             else:
                 """ ordinal place"""
-                self.pos = (new_y, new_x)
                 reward = 0.
-        return self.pos2id(t_pos), reward, False, None
+        self.pos = new_pos
+        return self.pos2id(self.pos), reward, False, None
 
     def exec_episode(self):
         episode_reward = 0
@@ -108,6 +107,7 @@ class BehavioralTestBattery(ReinforcementEnvironment):
         self.pos = self.__class__.default_pos
         self.reward_pos_list = self.__class__.default_reward_pos_list[:]
         self.reward = 0
+        self.model.reset()
         return self.pos2id(self.pos)
 
     def print_stat(self):

@@ -46,3 +46,6 @@ class Component(object):
             print parm
             file_name =class_name+"_"+parm+".npy"
             np.save(dir_name + file_name, self.params[parm]())
+
+    def reset(self):
+        pass
