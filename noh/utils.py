@@ -1,35 +1,28 @@
 import numpy as np
 
-def labelize(components):
-    labels = [component.name for component in components]
-    if len(labels) != len(set(labels)):
-        tmp = []
-        counts = {}
-        for label in labels:
-            if labels.count(label) > 1:
-                if label not in counts:
-                    counts[label] = 0
-                else:
-                    counts[label] += 1
-                tmp.append('{}{}'.format(label, counts[label]))
-            else:
-                tmp.append(label)
-        labels = tmp
-    return labels
-
 class Collection(object):
     keys = []
     values = []
 
-    def __init__(self, keys, values):
-        if keys is None:
-            keys = ['c{}'.format(i) for i in range(len(values))]
+    def __init__(self, collection):
+        if isinstance(collection, dict):
+            for key, value in collection.items():
+                self.keys.append(key)
+                self.values.append(key)
 
-        assert(len(keys) == len(set(keys)))
-        assert(len(keys) == len(values))
+        if isinstance(collection, list):
+            keys = [item.__class__.__name__.lower() for item in collection]
 
-        self.keys = keys
-        self.values = values
+            counts = {}
+
+            for key, value in zip(keys, collection):
+                if keys.count(key) > 1:
+                    if key not in counts:
+                        counts[key] = 0
+                    counts[key] += 1
+                    key = '{}{}'.format(key, counts[key])
+                self.keys.append(key)
+                self.values.append(value)
 
     def __getitem__(self, key):
         if isinstance(key, int):

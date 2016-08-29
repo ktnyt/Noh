@@ -1,8 +1,9 @@
 from noh import circuit
 from noh import component
+from noh import planner
 
 Circuit = circuit.Circuit
 Component = component.Component
-Planner = circuit.Planner
-PropRule = circuit.PropRule
-TrainRule = circuit.TrainRule
+Planner = planner.Planner
+PropRule = planner.PropRule
+TrainRule = planner.TrainRule

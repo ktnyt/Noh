@@ -3,8 +3,8 @@ from noh.components import Layer
 from noh.activate_functions import sigmoid
 
 class Reservoir(Layer):
-    def __init__(self, n_visible, n_hidden, activate=sigmoid, bind_prob_W=0.03, bind_prob_W_rec=0.1, name=None):
-        super(Reservoir, self).__init__(n_visible, n_hidden, name=name)
+    def __init__(self, n_visible, n_hidden, activate=sigmoid, bind_prob_W=0.03, bind_prob_W_rec=0.1):
+        super(Reservoir, self).__init__(n_visible, n_hidden)
 
         self.W = np.zeros((n_visible, n_hidden))
         self.W_rec = np.zeros((n_hidden, n_hidden))
