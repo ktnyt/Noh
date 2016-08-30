@@ -11,3 +11,4 @@ class Circuit(Collection, Component):
 
     def train(self, data, label, epochs):
         return self.planner.train(data, label, epochs)
+        

@@ -24,11 +24,15 @@ class ESNPlanner(Planner):
         )
 
 class ESN(Circuit):
-    def __init__(self, n_visible, n_hidden, n_output, planner=ESNPlanner):
+    def __init__(self, components, planner=ESNPlanner):
         super(ESN, self).__init__(
             planner=planner,
-            components=[
-                Reservoir(n_visible, n_hidden, bind_prob_W=0.03, bind_prob_W_rec=0.1),
-                Layer(n_hidden, n_output, train_func_generator=gen_linear_regression_trainer, activate=linear),
-            ],
+            components=components
         )
+
+    @classmethod
+    def create(cls, n_visible, n_hidden, n_output, planner=ESNPlanner):
+        return cls(components=[
+            Reservoir(n_visible, n_hidden, bind_prob_W=0.03, bind_prob_W_rec=0.1),
+            Layer(n_hidden, n_output, train_func_generator=gen_linear_regression_trainer, activate=linear)
+        ], planner=planner)

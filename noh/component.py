@@ -28,20 +28,14 @@ class Component(object):
     def train(self, data, label, epochs, **kwargs):
         raise NotImplementedError("`train` must be explicitly overridden")
 
-    def save_params(self):
-        import sys, os
-        import numpy as np
+    def save(self, filename):
+        f = open(filename, 'w')
+        pickle.dump(self, f)
+        f.close()
 
-        class_name = self.__class__.__name__
-        exec_name = os.path.splitext(sys.argv[0])[0]
-
-        cwd = os.getcwd()
-        dir_name = cwd + "/" + exec_name + "_save/"
-        print dir_name
-        if not os.path.exists(dir_name):
-            os.mkdir(dir_name)
-
-        for parm in self.params:
-            print parm
-            file_name =class_name+"_"+parm+".npy"
-            np.save(dir_name + file_name, self.params[parm]())
+    @staticmethod
+    def load(filename):
+        f = open(filename, 'r')
+        loaded = pickle.load(f)
+        f.close()
+        return loaded

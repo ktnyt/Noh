@@ -6,7 +6,7 @@ from noh.environments import Sin2CosTest
 import matplotlib.pyplot as plt
 
 if __name__ == "__main__":
-    esn = ESN(1, 100, 1)
+    esn = ESN.create(1, 100, 1)
     env = Sin2CosTest(esn)
     env.train(10)
     output = esn(env.get_dataset()[0])
