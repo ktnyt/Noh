@@ -1,8 +1,9 @@
-import component
-import circuit
-import planner
+from noh import circuit
+from noh import component
+from noh import environment
 
-Component = component.Component
 Circuit = circuit.Circuit
-Planner = planner.Planner
-
+Component = component.Component
+Planner = circuit.Planner
+PropRule = circuit.PropRule
+TrainRule = circuit.TrainRule

@@ -1,5 +1,6 @@
 from abc import ABCMeta, abstractmethod
 
+
 class Component(object):
     """ Callable Component for Circuits with training capability.
 
@@ -17,9 +18,8 @@ class Component(object):
     __metaclass__ = ABCMeta
 
     def __init__(self):
-        self.RL_trainable = False
-        self.parms = {}
-        
+        self.params = {}
+
     @abstractmethod
     def __call__(self, data, **kwargs):
         raise NotImplementedError("`__call__` must be explicitly overridden")
@@ -28,7 +28,7 @@ class Component(object):
     def train(self, data, label, epochs, **kwargs):
         raise NotImplementedError("`train` must be explicitly overridden")
 
-    def save_parms(self):
+    def save_params(self):
 
         import sys, os
         import numpy as np
@@ -42,7 +42,10 @@ class Component(object):
         if not os.path.exists(dir_name):
             os.mkdir(dir_name)
 
-        for parm in self.parms:
+        for parm in self.params:
             print parm
             file_name =class_name+"_"+parm+".npy"
-            np.save(dir_name + file_name, self.parms[parm]())
+            np.save(dir_name + file_name, self.params[parm]())
+
+    def reset(self):
+        pass

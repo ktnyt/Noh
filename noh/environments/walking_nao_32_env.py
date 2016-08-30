@@ -9,7 +9,7 @@ class WalkingNao32Env(UnsupervisedEnvironment):
     n_visible = 32 * 32 * 3
     n_dataset = 26
     n_test_dataset = 0
-    
+
     print os.getcwd()
     dir_name = "../noh/environments/walking_nao_32/"
     file_name_list = [str(i+1)+".bmp" for i in xrange(n_dataset)]
@@ -18,7 +18,7 @@ class WalkingNao32Env(UnsupervisedEnvironment):
         print dir_name+file_name
         img = Image.open(dir_name+file_name)
         dataset.append(np.asarray(img).flatten())
-    
+
     dataset = np.array(dataset) / 255.
     test_dataset = None
 
@@ -49,7 +49,7 @@ class WalkingNao32Env(UnsupervisedEnvironment):
             pylab.title(label)
 
         pylab.show()
-        
+
     def show_test_images(self, n_dataset=25):
 
         dataset = []
@@ -59,7 +59,7 @@ class WalkingNao32Env(UnsupervisedEnvironment):
             labels.append("%i" % np.argmax(self.test_dataset[1][id]))
 
         self.show_images(np.array(dataset), np.array(labels))
-            
+
     def show_reconstruct_images(self, n_dataset=18):
 
         dataset = []
@@ -75,4 +75,3 @@ class WalkingNao32Env(UnsupervisedEnvironment):
             labels.append('%i (rec)' % np.argmax(label))
 
         self.show_images(np.array(dataset), np.array(labels))
-

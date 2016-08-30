@@ -17,32 +17,34 @@ class ReinforcementEnvironment(Environment):
 
     __metaclass__ = ABCMeta
 
-    def __init__(self, model):
-        if not model.RL_trainable:
-            raise ValueError("model should be RL trainable")
+    def __init__(self, model, render=False):
         super(ReinforcementEnvironment, self).__init__(model)
 
+        if not hasattr(model, "rl_trainable"):
+            print model
+            raise ValueError("model should be RL trainable")
+
+        self.render = render
+        self.episode_number = 0
+
     def train(self):
-        stat = self.get_stat()
-        act = self.model(stat)
-        self.set_act(act)
-        reward = self.get_reward()
-        self.model.set_reward()
+        self.model.train()
 
     @abstractmethod
-    def get_stat(self):
-        """ Return a vector """
-        raise NotImplementedError("`get_stat` must be explicitly overridden")
+    def step(self, action):
+        raise NotImplementedError("step must be explicitly overridden")
 
     @abstractmethod
-    def set_act(self, act):
-        """ set a vector """
-        raise NotImplementedError("`set_act` must be explicitly overridden")
+    def exec_episode(self):
+        raise NotImplementedError("exec_episode must be explicitly overridden")
 
     @abstractmethod
-    def get_reward(self):
-        """ Return some scholar value """
-        raise NotImplementedError("`get_stat` must be explicitly overridden")
+    def reset(self):
+        raise NotImplementedError("`reset` must be explicitly overridden")
+
+    @abstractmethod
+    def print_stat(self):
+        raise NotImplementedError("`print_stat` must be explicitly overridden")
 
 
 class SupervisedEnvironment(Environment):
@@ -63,6 +65,7 @@ class SupervisedEnvironment(Environment):
     @classmethod
     def get_test_dataset(cls):
         return cls.test_dataset
+
 
 class UnsupervisedEnvironment(Environment):
 
