@@ -2,7 +2,7 @@
 
 from nose.tools import eq_
 
-from noh.core import Architecture
+from noh.core import Architecture, Circuit
 
 
 class SeedWBA(Architecture):
@@ -17,15 +17,17 @@ class SeedWBA(Architecture):
 
 def test_architecture():
     seedwba = SeedWBA()
-    test = seedwba.circuit(
+    test = Circuit(
         (('hip', 'sa'), 'bg'),
         ('sa', 'hip'),
         (('hip', 'bg'), 'pfc'),
     )
 
+    seedwba.add_circuits(test=test)
+
     add = lambda a, b: a + b
     inc = lambda x: x + 1
 
     test.implement(sa=inc, bg=add, hip=inc, pfc=add)
-    eq_(test(0), 5)
-    eq_(test(1), 8)
+    eq_(seedwba.test(0), 5)
+    eq_(seedwba.test(1), 8)

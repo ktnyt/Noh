@@ -71,12 +71,16 @@ def connections_to_edges(connections):
 
 
 class Circuit(object):
-    def __init__(self, nodes, edges):
-        self.nodes = nodes
-        self.edges = edges
+    def __init__(self, *connections):
+        self.edges = connections_to_edges(connections)
+
+        if is_cyclic(self.edges):
+            raise Exception('Error in circuit generation: circuit is cyclic')
+
+        self.nodes = list(set(chain.from_iterable(self.edges)))
         self.funcs = {}
 
-        for node in nodes:
+        for node in self.nodes:
             self.funcs[node] = None
 
     def __call__(self, *args):
@@ -160,16 +164,13 @@ class Architecture(object):
         self.nodes = nodes
         self.edges = edges
 
-    def circuit(self, *connections):
-        edges = connections_to_edges(connections)
+    def add_circuits(self, **circuits):
+        for name in circuits:
+            circuit = circuits[name]
+            if not is_subset(self.edges, circuit.edges):
+                raise Exception(
+                    'Error in circuit generation: not a valid subgraph')
 
-        if not is_subset(self.edges, edges):
-            raise Exception(
-                'Error in circuit generation: not a valid subgraph')
+            self.__setattr__(name, circuit)
 
-        if is_cyclic(edges):
-            raise Exception('Error in circuit generation: circuit is cyclic')
-
-        nodes = list(set(chain.from_iterable(edges)))
-
-        return Circuit(nodes, edges)
+        return self
