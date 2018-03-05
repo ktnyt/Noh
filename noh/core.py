@@ -72,12 +72,18 @@ def connections_to_edges(connections):
 
 class Circuit(object):
     def __init__(self, *connections):
-        self.edges = connections_to_edges(connections)
+        edges = connections_to_edges(connections)
+        nodes = list(set(chain.from_iterable(edges)))
 
-        if is_cyclic(self.edges):
+        if not is_valid(nodes, edges):
+            raise Exception(
+                'Given nodes and edges set do not form a valid graph')
+
+        if is_cyclic(edges):
             raise Exception('Error in circuit generation: circuit is cyclic')
 
-        self.nodes = list(set(chain.from_iterable(self.edges)))
+        self.nodes = nodes
+        self.edges = edges
         self.funcs = {}
 
         for node in self.nodes:
@@ -155,8 +161,10 @@ class Circuit(object):
 
 
 class Architecture(object):
-    def __init__(self, nodes, connections):
+    def __init__(self, *connections):
         edges = connections_to_edges(connections)
+        nodes = list(set(chain.from_iterable(edges)))
+
         if not is_valid(nodes, edges):
             raise Exception(
                 'Given nodes and edges set do not form a valid graph')
