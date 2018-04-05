@@ -2,32 +2,30 @@
 
 from nose.tools import eq_
 
-from noh.core import Architecture, Circuit
+from noh.core import Architecture, Circuit, Component
 
 
 class SeedWBA(Architecture):
     def __init__(self):
         super(SeedWBA, self).__init__(
-            (('hip', 'sa'), 'bg'),
-            (('amg', 'sa'), 'hip'),
-            (('hip', 'bg'), 'pfc'),
-            ('hip', 'amg'),
-        )
+            dict(
+                sa=Component(),
+                hip=Component(),
+                bg=Component(),
+                pfc=Component(),
+                amg=Component(),
+            ), [
+                (('hip', 'sa'), 'bg'),
+                (('amg', 'sa'), 'hip'),
+                (('hip', 'bg'), 'pfc'),
+                ('hip', 'amg'),
+            ])
 
 
 def test_architecture():
     seedwba = SeedWBA()
-    test = Circuit(
-        (('hip', 'sa'), 'bg'),
-        ('sa', 'hip'),
-        (('hip', 'bg'), 'pfc'),
-    )
+    test = seedwba.create_circuit('test', ['sa', 'bg', 'pfc'])
+    double = lambda x: x * 2
+    test.implement(double, double)
 
-    seedwba.add_circuits(test=test)
-
-    add = lambda a, b: a + b
-    inc = lambda x: x + 1
-
-    test.implement(sa=inc, bg=add, hip=inc, pfc=add)
-    eq_(seedwba.test(0), 5)
-    eq_(seedwba.test(1), 8)
+    eq_(seedwba.run_circuit('test', 42), 168)

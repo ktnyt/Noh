@@ -1,58 +1,5 @@
-# -*- coding: utf-8 -*-
-
-from itertools import chain
+from uuid import uuid4
 from inspect import signature, Signature, Parameter
-
-
-def is_valid(nodes, edges):
-    for edge in edges:
-        source, target = edge
-        if source not in nodes or target not in nodes:
-            return False
-    return True
-
-
-def is_subset(a, b):
-    for v in b:
-        if v not in a:
-            return False
-    return True
-
-
-def is_cyclic(edges):
-    nodes = list(set(chain.from_iterable(edges)))
-
-    visited = {}
-    recstack = {}
-    lut = {}
-
-    for node in nodes:
-        visited[node] = False
-        recstack[node] = False
-        lut[node] = []
-
-    for u, v in edges:
-        lut[u].append(v)
-
-    def check(node):
-        visited[node] = True
-        recstack[node] = True
-
-        for neighbour in lut[node]:
-            if not visited[neighbour]:
-                if check(neighbour):
-                    return True
-            elif recstack[neighbour]:
-                return True
-
-        recstack[node] = False
-        return False
-
-    for node in nodes:
-        if not visited[node]:
-            if check(node):
-                return True
-    return False
 
 
 def connections_to_edges(connections):
@@ -70,115 +17,77 @@ def connections_to_edges(connections):
     return edges
 
 
+class Component(object):
+    def __init__(self):
+        self.buffer = {}
+
+    def get(self, name):
+        return self.buffer[name]
+
+    def set(self, name, value):
+        self.buffer[name] = value
+
+
 class Circuit(object):
-    def __init__(self, *connections):
-        edges = connections_to_edges(connections)
-        nodes = list(set(chain.from_iterable(edges)))
-
-        if not is_valid(nodes, edges):
-            raise Exception(
-                'Given nodes and edges set do not form a valid graph')
-
-        if is_cyclic(edges):
-            raise Exception('Error in circuit generation: circuit is cyclic')
-
-        self.nodes = nodes
+    def __init__(self, edges):
+        self.uuid = uuid4()
         self.edges = edges
-        self.funcs = {}
+        self.funcs = [None] * len(edges)
 
-        for node in self.nodes:
-            self.funcs[node] = None
+    def __call__(self, arg):
+        if None in self.funcs:
+            raise NotImplementedError()
 
-    def __call__(self, *args):
-        given = list(args)
-        incoming = self.nodes[:]
-        outgoing = self.nodes[:]
-        nodes = self.nodes[:]
-        edges = self.edges
+        for (pre, post), func in zip(self.edges, self.funcs):
+            pre.set(self.uuid, arg)
+            arg = func(arg)
+            post.set(self.uuid, arg)
 
-        outputs = {}
+        return arg
 
-        for edge in edges:
-            source, target = edge
-            if target in incoming:
-                incoming.remove(target)
-            if source in outgoing:
-                outgoing.remove(source)
-
-        while nodes:
-            node = nodes.pop(0)
-            sig = signature(self.funcs[node])
-
-            deps = [s for (s, t) in edges if t == node]
-
-            ok = True
-            for dep in deps:
-                if dep not in outputs:
-                    ok = False
-
-            if not ok:
-                nodes.append(node)
-            else:
-                inputs = []
-
-                diff = len(sig.parameters) - len(deps)
-
-                if diff > 0:
-                    for _ in range(diff):
-                        inputs.append(given.pop(0))
-
-                for dep in deps:
-                    inputs.append(outputs[dep])
-
-                outputs[node] = self.funcs[node](*inputs)
-
-        if len(outgoing) == 1:
-            return outputs[outgoing[0]]
-
-        returns = []
-
-        for node in outgoing:
-            returns.append(outputs[node])
-
-        return tuple(returns)
-
-    def implement(self, **funcs):
-        missing = []
-
-        for node in self.nodes:
-            if node not in funcs:
-                missing.append(node)
-
-        if missing:
-            tmp = ['\'{}\''.format(node) for node in missing].join(', ')
-            raise Exception(
-                'Error in Circuit instantiation: missing functions for {}'.
-                format(tmp))
-
+    def implement(self, *funcs):
+        if len(funcs) != len(self.funcs):
+            wanted = len(self.funcs)
+            given = len(funcs)
+            raise Exception('wanted {} function(s) got but {}'.format(
+                wanted, given))
         self.funcs = funcs
 
-        return self
 
+class Architecture(Component):
+    def __init__(self, components, connections):
+        super(Architecture, self).__init__()
+        self.edges = connections_to_edges(connections)
+        self.nodes = components
+        self.circuits = {}
 
-class Architecture(object):
-    def __init__(self, *connections):
-        edges = connections_to_edges(connections)
-        nodes = list(set(chain.from_iterable(edges)))
+        for key in self.edges:
+            pre, post = key
 
-        if not is_valid(nodes, edges):
-            raise Exception(
-                'Given nodes and edges set do not form a valid graph')
+            if pre not in components:
+                raise Exception('no component with name {}'.format(pre))
 
-        self.nodes = nodes
-        self.edges = edges
+            if post not in components:
+                raise Exception('no component with name {}'.format(post))
 
-    def add_circuits(self, **circuits):
-        for name in circuits:
-            circuit = circuits[name]
-            if not is_subset(self.edges, circuit.edges):
-                raise Exception(
-                    'Error in circuit generation: not a valid subgraph')
+    def add_circuit(self, name, circuit):
+        if name in self.circuits:
+            raise Warning('a circuit with name {} already exists'.format(name))
+        self.circuits[name] = circuit
 
-            self.__setattr__(name, circuit)
+    def create_circuit(self, name, keys):
+        wanted = zip(keys[:-1], keys[1:])
+        edges = []
 
-        return self
+        for edge in wanted:
+            if edge not in self.edges:
+                raise Exception('{} is not a valid connection'.format(edge))
+            pre, post = edge
+            edges.append((self.nodes[pre], self.nodes[post]))
+
+        circuit = Circuit(edges)
+        self.add_circuit(name, circuit)
+        return circuit
+
+    def run_circuit(self, name, arg):
+        return self.circuits[name](arg)
