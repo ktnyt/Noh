@@ -1,1 +1,1 @@
-from noh.core import Circuit, Architecture
+from noh.core import Component, Sensor, Actuator, Circuit, Architecture
